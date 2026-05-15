@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="OAE.App.Controls.AssetCard"
+             Width="260">
+
+    <UserControl.Styles>
+        <Style Selector="Border#Card">
+            <Setter Property="Background" Value="#13171F"/>
+            <Setter Property="BorderBrush" Value="#1F242C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <Style Selector="Border#Card.dragOver">
+            <Setter Property="BorderBrush" Value="#2C6BE6"/>
+            <Setter Property="Background" Value="#172033"/>
+        </Style>
+        <Style Selector="Border#ImageHost">
+            <Setter Property="Background" Value="#0F1115"/>
+            <Setter Property="Height" Value="180"/>
+            <Setter Property="CornerRadius" Value="6,6,0,0"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Name="Card">
+        <DockPanel LastChildFill="True">
+            <Border Name="ImageHost" DockPanel.Dock="Top">
+                <Grid>
+                    <Image Name="Thumb" Stretch="Uniform" Margin="6"/>
+                    <TextBlock Name="ThumbPlaceholder"
+                               Text="(no preview)"
+                               Foreground="#6E7785" FontSize="11" FontStyle="Italic"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               IsVisible="False"/>
+                </Grid>
+            </Border>
+
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="12,8,12,0">
+                <TextBlock Grid.Column="0" Name="KeyText"
+                           FontFamily="Menlo,Monaco,Consolas" FontSize="12"
+                           Foreground="#D8DCE4" TextTrimming="CharacterEllipsis"/>
+                <Border Grid.Column="1" Background="#1F2530" CornerRadius="4" Padding="6,1" Margin="6,0,0,0">
+                    <TextBlock Name="PipelineBadge"
+                               Foreground="#A3ADBA" FontSize="10"/>
+                </Border>
+            </Grid>
+
+            <TextBlock DockPanel.Dock="Top" Name="DimsText"
+                       FontSize="10.5" Foreground="#7A8290" Margin="12,2,12,0"/>
+
+            <TextBlock DockPanel.Dock="Top" Name="PathText"
+                       FontFamily="Menlo,Monaco,Consolas" FontSize="9.5" Foreground="#5C6573"
+                       TextTrimming="CharacterEllipsis" Margin="12,2,12,8"/>
+
+            <ContentControl Name="StatePane" Margin="12,0,12,12"/>
+        </DockPanel>
+    </Border>
+</UserControl>

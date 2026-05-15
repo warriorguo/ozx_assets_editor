@@ -154,11 +154,16 @@
                         </Grid>
                     </Border>
 
-                    <!-- Tabs: Form / Raw JSON -->
+                    <!-- Tabs: Form / Images / Raw JSON -->
                     <TabControl Padding="0">
                         <TabItem Header="Form">
                             <ScrollViewer Padding="20,12,20,20">
                                 <StackPanel Name="FormHost" Spacing="2"/>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="Images">
+                            <ScrollViewer Padding="20,12,20,20">
+                                <WrapPanel Name="ImagesHost" ItemSpacing="14" LineSpacing="14"/>
                             </ScrollViewer>
                         </TabItem>
                         <TabItem Header="Raw JSON">

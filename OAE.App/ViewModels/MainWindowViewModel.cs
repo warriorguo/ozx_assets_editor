@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OAE.Core.Config;
 using OAE.Core.Importer;
+using OAE.Core.Resources;
 using OAE.Core.Schema;
 using OAE.Core.Store;
 
@@ -52,8 +54,10 @@ public partial class MainWindowViewModel : ViewModelBase
         Config = config;
         ConfigPath = configPath;
         Importer = new AssetImporter(config.ImportAssetSkillPath);
+        Resizer = new SipsImageResizer();
         var resolved = ResolvedConfig.Resolve(ConfigPath, Config);
         _store.Swap(StoreFactory.CreateForProject(resolved.UsesFallback ? null : resolved.GameDataDir));
+        RebuildAssetLocator();
         RefreshStatus();
         RefreshTypes();
     }
@@ -62,6 +66,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public string ConfigPath { get; }
     public HotSwapStore Store => _store;
     public AssetImporter Importer { get; }
+    public IImageResizer Resizer { get; }
+    public AssetLocator? AssetLocator { get; private set; }
+    public IReadOnlyList<ResolvedAsset> ResolvedAssets { get; private set; } = Array.Empty<ResolvedAsset>();
 
     /// <summary>
     /// Re-Get the current entity from the store and rebuild the form. Used
@@ -116,8 +123,20 @@ public partial class MainWindowViewModel : ViewModelBase
         Config.Save(ConfigPath);
         var resolved = ResolvedConfig.Resolve(ConfigPath, Config);
         _store.Swap(StoreFactory.CreateForProject(resolved.UsesFallback ? null : resolved.GameDataDir));
+        RebuildAssetLocator();
         RefreshStatus();
         RefreshTypes();
+    }
+
+    private void RebuildAssetLocator()
+    {
+        if (string.IsNullOrEmpty(Config.ProjectRoot) || !Directory.Exists(Config.ProjectRoot))
+        {
+            AssetLocator = null;
+            return;
+        }
+        AssetLocator = new AssetLocator(Config.ProjectRoot);
+        try { AssetLocator.Build(); } catch { /* index is best-effort */ }
     }
 
     public void Save()
@@ -194,6 +213,9 @@ public partial class MainWindowViewModel : ViewModelBase
             CurrentEntity = JsonNode.Parse(raw)?.AsObject();
             CurrentSchema = SchemaBuilder.For(EntityTypes.Map[SelectedType.Id]);
             RawJson = CurrentEntity?.ToJsonString(SaveJsonOpts) ?? string.Empty;
+            ResolvedAssets = (CurrentSchema is not null && CurrentEntity is not null && AssetLocator is not null)
+                ? AssetResolver.Resolve(CurrentSchema, CurrentEntity, AssetLocator)
+                : Array.Empty<ResolvedAsset>();
             IsDirty = false;
             SaveStatus = string.Empty;
         }
@@ -201,6 +223,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             CurrentEntity = null;
             CurrentSchema = null;
+            ResolvedAssets = Array.Empty<ResolvedAsset>();
             RawJson = $"// load failed: {ex.Message}";
             SaveStatus = string.Empty;
         }
@@ -211,6 +234,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         CurrentEntity = null;
         CurrentSchema = null;
+        ResolvedAssets = Array.Empty<ResolvedAsset>();
         RawJson = string.Empty;
         IsDirty = false;
         SaveStatus = string.Empty;
