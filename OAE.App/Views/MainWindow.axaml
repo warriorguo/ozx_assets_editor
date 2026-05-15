@@ -3,8 +3,8 @@
         xmlns:vm="using:OAE.App.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="560"
-        Width="900" Height="560"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="720"
+        Width="1200" Height="720"
         x:Class="OAE.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="OZX Assets Editor">
@@ -17,13 +17,17 @@
         <Style Selector="TextBlock.label">
             <Setter Property="Foreground" Value="#888"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Margin" Value="0,0,0,2"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
         </Style>
         <Style Selector="Border.statusOk">
             <Setter Property="Background" Value="#1E4D2B"/>
         </Style>
         <Style Selector="Border.statusBad">
             <Setter Property="Background" Value="#5C2B2B"/>
+        </Style>
+        <Style Selector="Border.pane">
+            <Setter Property="BorderBrush" Value="#222"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
         </Style>
     </Window.Styles>
 
@@ -52,19 +56,82 @@
             </Grid>
         </Border>
 
-        <!-- Body: type tree | detail (placeholders for OAE-5) -->
-        <Grid ColumnDefinitions="220,*">
-            <Border Grid.Column="0" Background="#1A1A1A" Padding="12">
-                <StackPanel Orientation="Vertical" Spacing="8">
-                    <TextBlock Classes="label" Text="ASSET TYPES"/>
-                    <TextBlock Text="(populated in OAE-5)" Opacity="0.6" FontStyle="Italic"/>
-                </StackPanel>
+        <!-- Body: type list | entity list | detail -->
+        <Grid ColumnDefinitions="220,300,*">
+
+            <!-- LEFT: type list -->
+            <Border Grid.Column="0" Classes="pane" Background="#181818">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Classes="label" Text="ASSET TYPES" Margin="14,12,14,4"/>
+                    <ListBox ItemsSource="{Binding Types}" SelectedItem="{Binding SelectedType}"
+                             Background="Transparent" BorderThickness="0" Padding="6,0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:TypeListItem">
+                                <Grid ColumnDefinitions="*,Auto" Margin="2,1">
+                                    <TextBlock Grid.Column="0" Text="{Binding Id}" FontFamily="Menlo,Monaco,Consolas"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Count}" Opacity="0.6" Margin="8,0,4,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
             </Border>
-            <Border Grid.Column="1" Padding="20">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
-                    <TextBlock Text="Asset list and editor pane" FontSize="14" Opacity="0.85"/>
-                    <TextBlock Text="OAE-3 fsstore + OAE-5 form UI land here." FontSize="11" Opacity="0.6"/>
-                </StackPanel>
+
+            <!-- MIDDLE: entity list -->
+            <Border Grid.Column="1" Classes="pane" Background="#1C1C1C">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Classes="label" Text="ENTITIES" Margin="14,12,14,4"/>
+                    <TextBox DockPanel.Dock="Top" Margin="10,0,10,8"
+                             PlaceholderText="Filter…" Text="{Binding EntityFilter, Mode=TwoWay}"/>
+                    <ListBox ItemsSource="{Binding Entities}" SelectedItem="{Binding SelectedEntity}"
+                             Background="Transparent" BorderThickness="0" Padding="6,0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:EntityListItem">
+                                <StackPanel Margin="2,2">
+                                    <TextBlock Text="{Binding Id}" FontFamily="Menlo,Monaco,Consolas"/>
+                                    <TextBlock Text="{Binding Path}" FontSize="10" Opacity="0.5"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- RIGHT: detail pane -->
+            <Border Grid.Column="2" Background="#222">
+                <DockPanel LastChildFill="True">
+                    <!-- Action bar -->
+                    <Border DockPanel.Dock="Top" Padding="14,10" BorderBrush="#333" BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Text="●" Foreground="#FFCC00" FontSize="14"
+                                           IsVisible="{Binding IsDirty}" ToolTip.Tip="Unsaved changes"/>
+                                <TextBlock Text="{Binding SaveStatus}" Opacity="0.65" FontSize="11"/>
+                            </StackPanel>
+                            <Button Grid.Column="2" Content="Revert" Click="OnRevertClick" Margin="6,0"
+                                    IsEnabled="{Binding IsDirty}"/>
+                            <Button Grid.Column="3" Content="Save" Click="OnSaveClick" Padding="14,6"
+                                    IsEnabled="{Binding IsDirty}"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Tabs: Form / Raw JSON -->
+                    <TabControl Padding="0">
+                        <TabItem Header="Form">
+                            <ScrollViewer Padding="14">
+                                <StackPanel Name="FormHost" Spacing="2"/>
+                            </ScrollViewer>
+                        </TabItem>
+                        <TabItem Header="Raw JSON">
+                            <ScrollViewer Padding="14">
+                                <TextBox Text="{Binding RawJson, Mode=OneWay}" IsReadOnly="True"
+                                         AcceptsReturn="True" TextWrapping="NoWrap"
+                                         FontFamily="Menlo,Monaco,Consolas" FontSize="12"
+                                         Background="Transparent" BorderThickness="0"/>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
             </Border>
         </Grid>
     </DockPanel>
