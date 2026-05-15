@@ -1,0 +1,31 @@
+# .NET build output
+bin/
+obj/
+
+# Publish output
+publish/
+packaging/macos/dist/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Per-user / per-machine
+**/Properties/launchSettings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test results
+TestResults/
+*.trx
+*.coverage
+
+# Avalonia previewer cache
+**/*.axaml.cs.bak

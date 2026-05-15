@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="OAE.App/OAE.App.csproj" />
+  <Project Path="OAE.Core/OAE.Core.csproj" />
+  <Project Path="OAE.Tests/OAE.Tests.csproj" />
+</Solution>

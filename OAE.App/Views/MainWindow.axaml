@@ -1,0 +1,71 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OAE.App.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="560"
+        Width="900" Height="560"
+        x:Class="OAE.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="OZX Assets Editor">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#888"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+        <Style Selector="Border.statusOk">
+            <Setter Property="Background" Value="#1E4D2B"/>
+        </Style>
+        <Style Selector="Border.statusBad">
+            <Setter Property="Background" Value="#5C2B2B"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel LastChildFill="True">
+
+        <!-- Top toolbar: project root + status + open button -->
+        <Border DockPanel.Dock="Top" Padding="14,10" BorderBrush="#222" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,16,0">
+                    <TextBlock Classes="label" Text="PROJECT ROOT"/>
+                    <TextBlock Text="{Binding ProjectRootDisplay}" FontFamily="Menlo,Monaco,Consolas" FontSize="13"/>
+                </StackPanel>
+
+                <Border Grid.Column="1" CornerRadius="4" Padding="10,6"
+                        Classes.statusOk="{Binding IsProjectValid}"
+                        Classes.statusBad="{Binding !IsProjectValid}"
+                        HorizontalAlignment="Left" Margin="8,0">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding StatusDetail}" FontSize="11" Opacity="0.85"/>
+                    </StackPanel>
+                </Border>
+
+                <Button Grid.Column="2" Content="Open Project…" Click="OnOpenProjectClick"
+                        Padding="14,6" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Body: type tree | detail (placeholders for OAE-5) -->
+        <Grid ColumnDefinitions="220,*">
+            <Border Grid.Column="0" Background="#1A1A1A" Padding="12">
+                <StackPanel Orientation="Vertical" Spacing="8">
+                    <TextBlock Classes="label" Text="ASSET TYPES"/>
+                    <TextBlock Text="(populated in OAE-5)" Opacity="0.6" FontStyle="Italic"/>
+                </StackPanel>
+            </Border>
+            <Border Grid.Column="1" Padding="20">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
+                    <TextBlock Text="Asset list and editor pane" FontSize="14" Opacity="0.85"/>
+                    <TextBlock Text="OAE-3 fsstore + OAE-5 form UI land here." FontSize="11" Opacity="0.6"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>
