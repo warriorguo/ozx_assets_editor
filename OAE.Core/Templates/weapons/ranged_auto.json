@@ -1,0 +1,19 @@
+{
+  "id": "ranged_auto",
+  "label": "Ranged auto-fire",
+  "description": "Auto-fire ranged weapon shooting a referenced projectile. Modeled after pistol.",
+  "body": {
+    "dataType": "WeaponData",
+    "id": "",
+    "displayName": "",
+    "category": "ranged",
+    "fireMode": "auto",
+    "damage": 5,
+    "fireRate": 3.0,
+    "critRate": 0.05,
+    "projectileId": "",
+    "shieldId": null,
+    "aimMode": "autoTarget",
+    "spriteKeys": []
+  }
+}

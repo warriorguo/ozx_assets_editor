@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using OAE.Core.Schema;
 
 namespace OAE.Core.Store;
 
@@ -15,34 +16,12 @@ public sealed class FsStore : IStore
 {
     /// <summary>
     /// Maps the OAE-facing entity type id to the on-disk subdirectory under
-    /// <c>GameData/</c>. The type id is intentionally the same string as the
-    /// subdir — no translation needed elsewhere in the codebase.
+    /// <c>GameData/</c>. By convention type id == subdir name, derived from
+    /// <see cref="EntityTypes.Map"/> so the schema and storage layouts can
+    /// never disagree.
     /// </summary>
-    public static readonly IReadOnlyDictionary<string, string> Types = new Dictionary<string, string>
-    {
-        ["ai"] = "ai",
-        ["beams"] = "beams",
-        ["bosses"] = "bosses",
-        ["box_rarity"] = "box_rarity",
-        ["cargo"] = "cargo",
-        ["combat"] = "combat",
-        ["enemies"] = "enemies",
-        ["heads"] = "heads",
-        ["items"] = "items",
-        ["legs"] = "legs",
-        ["level_plans"] = "level_plans",
-        ["levels"] = "levels",
-        ["loot_tables"] = "loot_tables",
-        ["oiltank"] = "oiltank",
-        ["player"] = "player",
-        ["progression"] = "progression",
-        ["projectiles"] = "projectiles",
-        ["rooms"] = "rooms",
-        ["shields"] = "shields",
-        ["skills"] = "skills",
-        ["spawn_plans"] = "spawn_plans",
-        ["weapons"] = "weapons",
-    };
+    public static readonly IReadOnlyDictionary<string, string> Types =
+        EntityTypes.Map.Keys.ToDictionary(k => k, k => k);
 
     private static readonly Regex IdPattern = new("^[a-z0-9_]+$", RegexOptions.Compiled);
 
