@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="OAE.App.App"
              xmlns:local="using:OAE.App"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Dark">
+             <!-- Force Dark so Fluent's input/control palette matches the panel backgrounds painted in MainWindow. -->
 
     <Application.DataTemplates>
         <local:ViewLocator/>

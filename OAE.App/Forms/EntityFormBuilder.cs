@@ -35,19 +35,23 @@ public static class EntityFormBuilder
         {
             Text = Humanise(field.Name),
             FontWeight = FontWeight.SemiBold,
-            FontSize = 12,
-            Foreground = new SolidColorBrush(Color.Parse("#CCCCCC")),
+            FontSize = 12.5,
+            Foreground = LabelBrush,
         };
 
         var hint = BuildHintLine(field);
         var editor = BuildEditor(field, parent, onMutated);
 
-        var labelStack = new StackPanel { Spacing = 2 };
-        labelStack.Children.Add(label);
-        if (hint is not null) labelStack.Children.Add(hint);
+        var labelRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+        };
+        labelRow.Children.Add(label);
+        if (hint is not null) labelRow.Children.Add(hint);
 
-        var row = new StackPanel { Spacing = 2, Margin = new Thickness(0, 6, 0, 6) };
-        row.Children.Add(labelStack);
+        var row = new StackPanel { Spacing = 4, Margin = new Thickness(0, 8, 0, 8) };
+        row.Children.Add(labelRow);
         row.Children.Add(editor);
         return row;
     }
@@ -55,21 +59,16 @@ public static class EntityFormBuilder
     private static TextBlock? BuildHintLine(FieldDescriptor f)
     {
         var bits = new List<string>();
-        bits.Add($"[{f.Kind.ToString().ToLowerInvariant()}]");
+        bits.Add(f.Kind.ToString().ToLowerInvariant());
         if (f.Meta?.RefTarget is { } r) bits.Add($"ref:{r}");
         if (f.Meta?.AssetKey is { } a) bits.Add($"asset:{a}");
         if (f.Meta?.Description is { } d) bits.Add(d);
-        if (bits.Count == 1) return new TextBlock
-        {
-            Text = bits[0],
-            FontSize = 10,
-            Foreground = new SolidColorBrush(Color.Parse("#777")),
-        };
         return new TextBlock
         {
-            Text = string.Join("  ·  ", bits),
-            FontSize = 10,
-            Foreground = new SolidColorBrush(Color.Parse("#888")),
+            Text = string.Join(" · ", bits),
+            FontSize = 10.5,
+            Foreground = HintBrush,
+            VerticalAlignment = VerticalAlignment.Center,
         };
     }
 
@@ -186,12 +185,12 @@ public static class EntityFormBuilder
 
         var border = new Border
         {
-            BorderBrush = new SolidColorBrush(Color.Parse("#333")),
-            BorderThickness = new Thickness(1, 0, 0, 0),
-            Padding = new Thickness(12, 4, 0, 4),
+            BorderBrush = NestedBorderBrush,
+            BorderThickness = new Thickness(2, 0, 0, 0),
+            Padding = new Thickness(14, 2, 0, 2),
             Margin = new Thickness(0, 2, 0, 2),
         };
-        var children = new StackPanel { Spacing = 4 };
+        var children = new StackPanel { Spacing = 0 };
         if (f.Nested is not null)
             foreach (var sub in f.Nested.Fields)
                 children.Children.Add(BuildFieldRow(sub, nested, onMutated));
@@ -208,9 +207,9 @@ public static class EntityFormBuilder
             Text = count == 0
                 ? "(empty — array editor lands as a follow-up; edit via raw JSON for now)"
                 : $"{count} item(s) — array editor lands as a follow-up; edit via raw JSON for now",
-            Opacity = 0.6,
+            Foreground = HintBrush,
             FontStyle = FontStyle.Italic,
-            FontSize = 11,
+            FontSize = 11.5,
         };
     }
 
@@ -245,4 +244,7 @@ public static class EntityFormBuilder
     }
 
     private static readonly FontFamily MonoFont = new("Menlo,Monaco,Consolas");
+    private static readonly IBrush LabelBrush = new SolidColorBrush(Color.Parse("#D8DCE4"));
+    private static readonly IBrush HintBrush = new SolidColorBrush(Color.Parse("#6E7785"));
+    private static readonly IBrush NestedBorderBrush = new SolidColorBrush(Color.Parse("#2C3340"));
 }
