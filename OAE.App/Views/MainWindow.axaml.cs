@@ -43,7 +43,12 @@ public partial class MainWindow : Window
             });
             return;
         }
-        var control = EntityFormBuilder.Build(_vmHooked.CurrentSchema, _vmHooked.CurrentEntity, _vmHooked.NotifyFormMutated);
+        var ctx = new FormContext(
+            Importer: _vmHooked.Importer,
+            ProjectRoot: string.IsNullOrEmpty(_vmHooked.Config.ProjectRoot) ? null : _vmHooked.Config.ProjectRoot,
+            EntityId: _vmHooked.SelectedEntity?.Id,
+            OnImportCompleted: () => _vmHooked!.ReloadCurrentEntity());
+        var control = EntityFormBuilder.Build(_vmHooked.CurrentSchema, _vmHooked.CurrentEntity, _vmHooked.NotifyFormMutated, ctx);
         host.Children.Add(control);
     }
 

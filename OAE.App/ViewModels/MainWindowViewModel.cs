@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OAE.Core.Config;
+using OAE.Core.Importer;
 using OAE.Core.Schema;
 using OAE.Core.Store;
 
@@ -50,6 +51,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _store = store;
         Config = config;
         ConfigPath = configPath;
+        Importer = new AssetImporter(config.ImportAssetSkillPath);
         var resolved = ResolvedConfig.Resolve(ConfigPath, Config);
         _store.Swap(StoreFactory.CreateForProject(resolved.UsesFallback ? null : resolved.GameDataDir));
         RefreshStatus();
@@ -59,6 +61,13 @@ public partial class MainWindowViewModel : ViewModelBase
     public OaeConfig Config { get; }
     public string ConfigPath { get; }
     public HotSwapStore Store => _store;
+    public AssetImporter Importer { get; }
+
+    /// <summary>
+    /// Re-Get the current entity from the store and rebuild the form. Used
+    /// after an asset import that may have mutated the entity JSON on disk.
+    /// </summary>
+    public void ReloadCurrentEntity() => LoadSelectedEntity();
 
     // ── status banner state ──────────────────────────────────────────────
     [ObservableProperty] private string _projectRootDisplay = "(no project)";

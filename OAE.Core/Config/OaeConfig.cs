@@ -17,6 +17,14 @@ public sealed class OaeConfig
     public bool AutoOpenLastProject { get; set; } = true;
 
     /// <summary>
+    /// Optional override for the path to the import-asset Python script used by
+    /// OAE-15's drop-zone. <c>null</c> = autodiscover at
+    /// <c>~/.claude/skills/import-asset/scripts/import_asset.py</c>.
+    /// </summary>
+    [JsonPropertyName("import_asset_skill_path")]
+    public string? ImportAssetSkillPath { get; set; }
+
+    /// <summary>
     /// ~/.config/oae/config.json on macOS/Linux. Uses XDG-style placement so it
     /// stays out of ~/Library and is easy to inspect by hand.
     /// </summary>

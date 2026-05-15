@@ -7,9 +7,23 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using OAE.App.Controls;
+using OAE.Core.Importer;
 using OAE.Core.Schema;
 
 namespace OAE.App.Forms;
+
+/// <summary>
+/// Per-form context passed through the recursive builder so leaf controls
+/// can access the things only the host knows: which entity is being
+/// edited, which project root to pass to the importer, and how to refresh
+/// the form after an asset import mutates files on disk.
+/// </summary>
+public sealed record FormContext(
+    AssetImporter? Importer,
+    string? ProjectRoot,
+    string? EntityId,
+    Action OnImportCompleted);
 
 /// <summary>
 /// Walks a <see cref="SchemaModel"/> and builds an Avalonia control tree
@@ -19,17 +33,17 @@ namespace OAE.App.Forms;
 /// </summary>
 public static class EntityFormBuilder
 {
-    public static Control Build(SchemaModel schema, JsonObject root, Action onMutated)
+    public static Control Build(SchemaModel schema, JsonObject root, Action onMutated, FormContext context)
     {
         var panel = new StackPanel { Spacing = 6 };
         foreach (var field in schema.Fields)
-            panel.Children.Add(BuildFieldRow(field, root, onMutated));
+            panel.Children.Add(BuildFieldRow(field, root, onMutated, context));
         return panel;
     }
 
     // ── per-field row ────────────────────────────────────────────────────
 
-    private static Control BuildFieldRow(FieldDescriptor field, JsonObject parent, Action onMutated)
+    private static Control BuildFieldRow(FieldDescriptor field, JsonObject parent, Action onMutated, FormContext context)
     {
         var label = new TextBlock
         {
@@ -40,7 +54,7 @@ public static class EntityFormBuilder
         };
 
         var hint = BuildHintLine(field);
-        var editor = BuildEditor(field, parent, onMutated);
+        var editor = BuildEditor(field, parent, onMutated, context);
 
         var labelRow = new StackPanel
         {
@@ -74,8 +88,18 @@ public static class EntityFormBuilder
 
     // ── editor controls per FieldKind ────────────────────────────────────
 
-    private static Control BuildEditor(FieldDescriptor f, JsonObject parent, Action onMutated)
+    private static Control BuildEditor(FieldDescriptor f, JsonObject parent, Action onMutated, FormContext context)
     {
+        // String fields with an asset pipeline registered on them swap the
+        // plain TextBox for an AssetDropZone (see OAE-15).
+        if (f.Kind == FieldKind.String && f.Meta?.AssetKey is { } pipeline
+            && context.Importer is not null
+            && context.ProjectRoot is not null
+            && context.EntityId is not null)
+        {
+            return BuildAssetDropZone(f, parent, pipeline, context);
+        }
+
         return f.Kind switch
         {
             FieldKind.String => BuildString(f, parent, onMutated),
@@ -85,10 +109,18 @@ public static class EntityFormBuilder
             FieldKind.Double => BuildDecimal(f, parent, onMutated, increment: 0.1m),
             FieldKind.Bool   => BuildBool(f, parent, onMutated),
             FieldKind.Enum   => BuildEnum(f, parent, onMutated),
-            FieldKind.Object => BuildObject(f, parent, onMutated),
+            FieldKind.Object => BuildObject(f, parent, onMutated, context),
             FieldKind.Array  => BuildArrayPlaceholder(f, parent),
             _                => new TextBlock { Text = $"(unsupported kind: {f.Kind})", Opacity = 0.6 },
         };
+    }
+
+    private static Control BuildAssetDropZone(FieldDescriptor f, JsonObject parent, string pipeline, FormContext context)
+    {
+        var dz = new AssetDropZone();
+        dz.Configure(parent, f.Name, pipeline, context.Importer!, context.ProjectRoot!, context.EntityId!);
+        dz.ImportCompleted += () => context.OnImportCompleted();
+        return dz;
     }
 
     private static Control BuildString(FieldDescriptor f, JsonObject parent, Action onMutated)
@@ -174,7 +206,7 @@ public static class EntityFormBuilder
         return combo;
     }
 
-    private static Control BuildObject(FieldDescriptor f, JsonObject parent, Action onMutated)
+    private static Control BuildObject(FieldDescriptor f, JsonObject parent, Action onMutated, FormContext context)
     {
         // Ensure the nested object exists so child editors have something to mutate.
         if (parent[f.Name] is not JsonObject nested)
@@ -193,7 +225,7 @@ public static class EntityFormBuilder
         var children = new StackPanel { Spacing = 0 };
         if (f.Nested is not null)
             foreach (var sub in f.Nested.Fields)
-                children.Children.Add(BuildFieldRow(sub, nested, onMutated));
+                children.Children.Add(BuildFieldRow(sub, nested, onMutated, context));
         border.Child = children;
         return border;
     }

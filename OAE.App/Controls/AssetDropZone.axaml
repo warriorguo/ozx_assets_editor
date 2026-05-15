@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="OAE.App.Controls.AssetDropZone">
+
+    <UserControl.Styles>
+        <Style Selector="Border#DropZone">
+            <Setter Property="Background" Value="#0F1115"/>
+            <Setter Property="BorderBrush" Value="#2C3340"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="12,10"/>
+        </Style>
+        <Style Selector="Border#DropZone.dragOver">
+            <Setter Property="BorderBrush" Value="#2C6BE6"/>
+            <Setter Property="Background" Value="#172033"/>
+        </Style>
+        <Style Selector="Border#DropZone.disabled">
+            <Setter Property="Opacity" Value="0.55"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Name="DropZone">
+        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+            <TextBox Grid.Row="0" Grid.Column="0" Name="KeyBox"
+                     FontFamily="Menlo,Monaco,Consolas" FontSize="12"
+                     Background="Transparent" BorderThickness="0" Padding="0"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Name="PipelineBadge"
+                       Foreground="#7A8290" FontSize="10.5" VerticalAlignment="Center"
+                       Margin="8,0,0,0"/>
+            <ContentControl Grid.Row="1" Grid.ColumnSpan="2" Name="StatePane"
+                            Margin="0,8,0,0"/>
+        </Grid>
+    </Border>
+</UserControl>
