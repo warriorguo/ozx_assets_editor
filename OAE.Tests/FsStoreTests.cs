@@ -1,0 +1,170 @@
+using OAE.Core.Store;
+using Xunit.Abstractions;
+
+namespace OAE.Tests;
+
+public class FsStoreTests
+{
+    private readonly ITestOutputHelper _out;
+    public FsStoreTests(ITestOutputHelper output) => _out = output;
+
+    [Fact]
+    public void Mount_throws_when_GameData_dir_missing()
+    {
+        Assert.Throws<DirectoryNotFoundException>(() => new FsStore("/tmp/oae-no-such-path-xyz"));
+    }
+
+    [Fact]
+    public void List_returns_descriptors_with_relative_path()
+    {
+        using var sandbox = NewSandbox();
+        File.WriteAllText(Path.Combine(sandbox.GameData, "enemies", "alpha.json"), "{}");
+        File.WriteAllText(Path.Combine(sandbox.GameData, "enemies", "beta.json"), "{}");
+
+        var store = new FsStore(sandbox.GameData);
+        var list = store.List("enemies");
+
+        Assert.Equal(2, list.Count);
+        Assert.Equal(new[] { "alpha", "beta" }, list.Select(e => e.Id));
+        Assert.All(list, e => Assert.StartsWith("Assets/StreamingAssets/GameData/enemies/", e.Path));
+    }
+
+    [Fact]
+    public void Get_returns_raw_bytes_unchanged()
+    {
+        using var sandbox = NewSandbox();
+        const string body = "{\n  \"x\": 1\n}\n";
+        File.WriteAllText(Path.Combine(sandbox.GameData, "weapons", "w.json"), body);
+        var store = new FsStore(sandbox.GameData);
+        Assert.Equal(body, store.Get("weapons", "w"));
+    }
+
+    [Fact]
+    public void Create_then_Get_then_Delete_round_trip()
+    {
+        using var sandbox = NewSandbox();
+        var store = new FsStore(sandbox.GameData);
+        const string body = "{ \"id\": \"new_one\" }\n";
+        store.Create("skills", "new_one", body);
+        Assert.Equal(body, store.Get("skills", "new_one"));
+        store.Delete("skills", "new_one");
+        Assert.Throws<EntityNotFoundException>(() => store.Get("skills", "new_one"));
+    }
+
+    [Fact]
+    public void Update_requires_existing_file()
+    {
+        using var sandbox = NewSandbox();
+        var store = new FsStore(sandbox.GameData);
+        Assert.Throws<EntityNotFoundException>(() => store.Update("items", "ghost", "{}"));
+    }
+
+    [Fact]
+    public void Create_refuses_to_overwrite()
+    {
+        using var sandbox = NewSandbox();
+        var store = new FsStore(sandbox.GameData);
+        store.Create("items", "x", "{}\n");
+        Assert.Throws<InvalidOperationException>(() => store.Create("items", "x", "{}\n"));
+    }
+
+    [Theory]
+    [InlineData("BadId")]      // uppercase
+    [InlineData("with-dash")]  // dash
+    [InlineData("")]           // empty
+    [InlineData("a b")]        // space
+    public void Create_rejects_invalid_ids(string badId)
+    {
+        using var sandbox = NewSandbox();
+        var store = new FsStore(sandbox.GameData);
+        Assert.Throws<ArgumentException>(() => store.Create("items", badId, "{}"));
+    }
+
+    [Fact]
+    public void Unknown_type_throws()
+    {
+        using var sandbox = NewSandbox();
+        var store = new FsStore(sandbox.GameData);
+        Assert.Throws<ArgumentException>(() => store.List("not_a_real_type"));
+    }
+
+    [Fact]
+    public void Round_trip_against_ozx_base_is_byte_equivalent()
+    {
+        var ozx = ResolveSiblingOzxBase();
+        if (ozx is null)
+        {
+            _out.WriteLine("ozx_base sibling not found — round-trip test skipped.");
+            return;
+        }
+
+        var src = new FsStore(Path.Combine(ozx, "Assets", "StreamingAssets", "GameData"));
+        using var sandbox = NewSandbox();
+        var dst = new FsStore(sandbox.GameData);
+
+        var totalFiles = 0;
+        var mismatches = new List<string>();
+        foreach (var type in FsStore.Types.Keys)
+        {
+            foreach (var entity in src.List(type))
+            {
+                totalFiles++;
+                var body = src.Get(type, entity.Id);
+                dst.Create(type, entity.Id, body);
+                var roundTripped = dst.Get(type, entity.Id);
+                if (!string.Equals(body, roundTripped, StringComparison.Ordinal))
+                    mismatches.Add($"{type}/{entity.Id}");
+            }
+        }
+
+        _out.WriteLine($"round-tripped {totalFiles} files across {FsStore.Types.Count} types.");
+        Assert.True(totalFiles > 100, $"expected >100 files in ozx_base; got {totalFiles}");
+        Assert.Empty(mismatches);
+    }
+
+    [Fact]
+    public void TotalEntityCount_matches_real_layout_when_sibling_present()
+    {
+        var ozx = ResolveSiblingOzxBase();
+        if (ozx is null)
+        {
+            _out.WriteLine("ozx_base sibling not found — count test skipped.");
+            return;
+        }
+        var store = new FsStore(Path.Combine(ozx, "Assets", "StreamingAssets", "GameData"));
+        var n = store.TotalEntityCount();
+        _out.WriteLine($"counted {n} entities");
+        Assert.True(n > 180, $"expected >180 entities in ozx_base; got {n}");
+    }
+
+    private static string? ResolveSiblingOzxBase()
+    {
+        // Walk up from the test assembly looking for a sibling ozx_base/Assets/StreamingAssets/GameData.
+        var dir = AppContext.BaseDirectory;
+        for (var i = 0; i < 8 && dir is not null; i++)
+        {
+            var sibling = Path.Combine(dir, "..", "ozx_base", "Assets", "StreamingAssets", "GameData");
+            if (Directory.Exists(sibling)) return Path.GetFullPath(Path.Combine(dir, "..", "ozx_base"));
+            dir = Path.GetDirectoryName(dir);
+        }
+        return null;
+    }
+
+    private static Sandbox NewSandbox() => new();
+
+    private sealed class Sandbox : IDisposable
+    {
+        public string Root { get; }
+        public string GameData { get; }
+        public Sandbox()
+        {
+            Root = Directory.CreateTempSubdirectory("oae-fsstore-").FullName;
+            GameData = Path.Combine(Root, "Assets", "StreamingAssets", "GameData");
+            Directory.CreateDirectory(GameData);
+            // Pre-create every known subdir so List doesn't depend on order of operations.
+            foreach (var sub in FsStore.Types.Values)
+                Directory.CreateDirectory(Path.Combine(GameData, sub));
+        }
+        public void Dispose() { try { Directory.Delete(Root, recursive: true); } catch { } }
+    }
+}

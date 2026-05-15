@@ -24,6 +24,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _store = store;
         Config = config;
         ConfigPath = configPath;
+        // Mount the configured project on construction so re-launches reflect saved state.
+        var resolved = ResolvedConfig.Resolve(ConfigPath, Config);
+        _store.Swap(StoreFactory.CreateForProject(resolved.UsesFallback ? null : resolved.GameDataDir));
         Refresh();
     }
 
@@ -43,18 +46,16 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isProjectValid;
 
     /// <summary>
-    /// Apply a folder selected by the View's folder picker: validate, persist,
-    /// and (eventually) hot-swap the store. Until OAE-3 lands the real fsstore,
-    /// the store stays a <see cref="StubStore"/> with an updated reason.
+    /// Apply a folder selected by the View's folder picker: persist the choice,
+    /// hot-swap the store to a real <see cref="FsStore"/> when GameData/ is
+    /// present, otherwise fall back to <see cref="StubStore"/>.
     /// </summary>
     public void ApplyProjectRoot(string path)
     {
         Config.ProjectRoot = path;
         Config.Save(ConfigPath);
         var resolved = ResolvedConfig.Resolve(ConfigPath, Config);
-        _store.Swap(new StubStore(resolved.UsesFallback
-            ? resolved.FallbackReason ?? "fallback"
-            : "fsstore not implemented yet (OAE-3)"));
+        _store.Swap(StoreFactory.CreateForProject(resolved.UsesFallback ? null : resolved.GameDataDir));
         Refresh();
     }
 
@@ -72,7 +73,10 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             IsProjectValid = true;
             StatusText = "Valid";
-            StatusDetail = $"GameData/ at {resolved.GameDataDir}";
+            var detail = $"GameData/ at {resolved.GameDataDir}";
+            if (_store.Inner is FsStore fs)
+                detail = $"{fs.TotalEntityCount()} entities across {FsStore.Types.Count} types";
+            StatusDetail = detail;
         }
     }
 }
