@@ -1,10 +1,12 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
@@ -24,6 +26,7 @@ namespace OAE.App.Controls;
 public partial class AssetCard : UserControl
 {
     private Border _card = null!;
+    private Border _imageHost = null!;
     private Image _thumb = null!;
     private TextBlock _placeholder = null!;
     private TextBlock _keyText = null!;
@@ -46,6 +49,7 @@ public partial class AssetCard : UserControl
     {
         AvaloniaXamlLoader.Load(this);
         _card           = this.FindControl<Border>("Card")!;
+        _imageHost      = this.FindControl<Border>("ImageHost")!;
         _thumb          = this.FindControl<Image>("Thumb")!;
         _placeholder    = this.FindControl<TextBlock>("ThumbPlaceholder")!;
         _keyText        = this.FindControl<TextBlock>("KeyText")!;
@@ -59,6 +63,35 @@ public partial class AssetCard : UserControl
         AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DropEvent, OnDrop);
+
+        _imageHost.DoubleTapped += OnThumbDoubleTapped;
+        _imageHost.Cursor = new Cursor(StandardCursorType.Hand);
+    }
+
+    /// <summary>
+    /// Reveal the underlying file in Finder. Prefers the rendered image so the
+    /// user lands on the PNG even when the ResourcesDB key points at an
+    /// intermediate <c>.asset</c>; falls back to the .asset itself when no
+    /// image could be resolved.
+    /// </summary>
+    private void OnThumbDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        var target = _asset?.ImagePath ?? _asset?.DirectAssetPath;
+        if (string.IsNullOrEmpty(target) || !File.Exists(target)) return;
+        if (!OperatingSystem.IsMacOS()) return;
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "/usr/bin/open",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            psi.ArgumentList.Add("-R");
+            psi.ArgumentList.Add(target);
+            Process.Start(psi)?.Dispose();
+        }
+        catch { /* best effort — no UI noise if Finder won't launch */ }
     }
 
     public void Configure(
