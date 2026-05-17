@@ -54,7 +54,9 @@ public partial class MainWindow : Window
             Importer: _vmHooked.Importer,
             ProjectRoot: string.IsNullOrEmpty(_vmHooked.Config.ProjectRoot) ? null : _vmHooked.Config.ProjectRoot,
             EntityId: _vmHooked.SelectedEntity?.Id,
-            OnImportCompleted: () => _vmHooked!.ReloadCurrentEntity());
+            OnImportCompleted: () => _vmHooked!.ReloadCurrentEntity(),
+            References: _vmHooked.References,
+            OnJump: (type, id) => _vmHooked!.JumpToEntity(type, id));
         var control = EntityFormBuilder.Build(_vmHooked.CurrentSchema, _vmHooked.CurrentEntity, _vmHooked.NotifyFormMutated, ctx);
         host.Children.Add(control);
     }

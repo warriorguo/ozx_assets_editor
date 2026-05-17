@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="OAE.App.Controls.ReferencePicker">
+
+    <StackPanel Spacing="2">
+        <Grid ColumnDefinitions="*,Auto">
+            <AutoCompleteBox Grid.Column="0" Name="Picker"
+                             FilterMode="Contains"
+                             MinimumPrefixLength="0"
+                             FontFamily="Menlo,Monaco,Consolas" FontSize="12"
+                             PlaceholderText="Pick or type an id…"/>
+            <Button Grid.Column="1" Name="JumpButton" Content="→"
+                    Padding="10,4" Margin="6,0,0,0"
+                    ToolTip.Tip="Jump to referenced entity"/>
+        </Grid>
+        <TextBlock Name="BrokenLine" FontSize="10.5" Foreground="#E39B9B" IsVisible="False"/>
+    </StackPanel>
+</UserControl>

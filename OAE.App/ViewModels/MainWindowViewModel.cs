@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OAE.Core.Config;
 using OAE.Core.Importer;
+using OAE.Core.References;
 using OAE.Core.Resources;
 using OAE.Core.Schema;
 using OAE.Core.Store;
@@ -55,9 +56,11 @@ public partial class MainWindowViewModel : ViewModelBase
         ConfigPath = configPath;
         Importer = new AssetImporter(config.ImportAssetSkillPath);
         Resizer = new SipsImageResizer();
+        References = new ReferenceIndex();
         var resolved = ResolvedConfig.Resolve(ConfigPath, Config);
         _store.Swap(StoreFactory.CreateForProject(resolved.UsesFallback ? null : resolved.GameDataDir));
         RebuildAssetLocator();
+        References.Rebuild(_store);
         RefreshStatus();
         RefreshTypes();
     }
@@ -69,6 +72,22 @@ public partial class MainWindowViewModel : ViewModelBase
     public IImageResizer Resizer { get; }
     public AssetLocator? AssetLocator { get; private set; }
     public IReadOnlyList<ResolvedAsset> ResolvedAssets { get; private set; } = Array.Empty<ResolvedAsset>();
+    public ReferenceIndex References { get; }
+
+    /// <summary>
+    /// Select <paramref name="typeId"/> in the left pane and <paramref name="entityId"/>
+    /// in the middle pane, loading that entity into the form. Used by the
+    /// reference picker's '→' jump button.
+    /// </summary>
+    public void JumpToEntity(string typeId, string entityId)
+    {
+        var typeItem = Types.FirstOrDefault(t => t.Id == typeId);
+        if (typeItem is null) return;
+        SelectedType = typeItem;
+        // OnSelectedTypeChanged refreshes Entities synchronously; pick the target id.
+        var entityItem = Entities.FirstOrDefault(e => e.Id == entityId);
+        if (entityItem is not null) SelectedEntity = entityItem;
+    }
 
     /// <summary>
     /// Re-Get the current entity from the store and rebuild the form. Used
@@ -124,6 +143,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var resolved = ResolvedConfig.Resolve(ConfigPath, Config);
         _store.Swap(StoreFactory.CreateForProject(resolved.UsesFallback ? null : resolved.GameDataDir));
         RebuildAssetLocator();
+        References.Rebuild(_store);
         RefreshStatus();
         RefreshTypes();
     }
@@ -148,6 +168,9 @@ public partial class MainWindowViewModel : ViewModelBase
             _store.Update(SelectedType.Id, SelectedEntity.Id, json);
             IsDirty = false;
             SaveStatus = $"Saved {SelectedEntity.Id} at {DateTime.Now:HH:mm:ss}";
+            // A new id may have been added (or a rename, eventually) — keep the
+            // picker dropdowns in sync.
+            References.Rebuild(_store);
         }
         catch (Exception ex)
         {

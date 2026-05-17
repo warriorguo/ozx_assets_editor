@@ -9,6 +9,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using OAE.App.Controls;
 using OAE.Core.Importer;
+using OAE.Core.References;
 using OAE.Core.Schema;
 
 namespace OAE.App.Forms;
@@ -23,7 +24,9 @@ public sealed record FormContext(
     AssetImporter? Importer,
     string? ProjectRoot,
     string? EntityId,
-    Action OnImportCompleted);
+    Action OnImportCompleted,
+    ReferenceIndex? References = null,
+    Action<string, string>? OnJump = null);
 
 /// <summary>
 /// Walks a <see cref="SchemaModel"/> and builds an Avalonia control tree
@@ -90,6 +93,14 @@ public static class EntityFormBuilder
 
     private static Control BuildEditor(FieldDescriptor f, JsonObject parent, Action onMutated, FormContext context)
     {
+        // String fields with a ref target swap to a ReferencePicker (OAE-6).
+        if (f.Kind == FieldKind.String && f.Meta?.RefTarget is { } target
+            && context.References is not null
+            && context.OnJump is not null)
+        {
+            return BuildReferencePicker(f, parent, target, onMutated, context);
+        }
+
         // String fields with an asset pipeline registered on them swap the
         // plain TextBox for an AssetDropZone (see OAE-15).
         if (f.Kind == FieldKind.String && f.Meta?.AssetKey is { } pipeline
@@ -121,6 +132,13 @@ public static class EntityFormBuilder
         dz.Configure(parent, f.Name, pipeline, context.Importer!, context.ProjectRoot!, context.EntityId!);
         dz.ImportCompleted += () => context.OnImportCompleted();
         return dz;
+    }
+
+    private static Control BuildReferencePicker(FieldDescriptor f, JsonObject parent, string targetType, Action onMutated, FormContext context)
+    {
+        var picker = new ReferencePicker();
+        picker.Configure(parent, f.Name, targetType, context.References!, context.OnJump!, onMutated);
+        return picker;
     }
 
     private static Control BuildString(FieldDescriptor f, JsonObject parent, Action onMutated)
