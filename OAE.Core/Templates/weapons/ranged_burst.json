@@ -1,0 +1,22 @@
+{
+  "id": "ranged_burst",
+  "label": "Ranged burst (shotgun-style)",
+  "description": "Fires multiple projectiles per trigger pull. Modeled after shotgun_compact.",
+  "body": {
+    "dataType": "WeaponData",
+    "id": "",
+    "displayName": "",
+    "category": "ranged",
+    "fireMode": "burst",
+    "damage": 5,
+    "fireRate": 1.8,
+    "critRate": 0.08,
+    "projectileId": "",
+    "shieldId": null,
+    "aimMode": "autoTarget",
+    "spriteKeys": [],
+    "fireSoundId": "",
+    "muzzleEmission": 1,
+    "muzzleFxChild": ""
+  }
+}

@@ -135,6 +135,38 @@ public class SchemaTests
         Assert.Contains(weapons, t => t.Id == "ranged_auto");
     }
 
+    [Theory]
+    [InlineData("enemies", 3)]
+    [InlineData("weapons", 3)]
+    [InlineData("projectiles", 3)]
+    [InlineData("skills", 3)]
+    [InlineData("items", 3)]
+    public void TemplateLoader_has_at_least_N_templates_per_P1_type(string typeId, int min)
+    {
+        var templates = TemplateLoader.For(typeId);
+        Assert.True(templates.Count >= min,
+            $"{typeId}: expected >= {min} templates, got {templates.Count}");
+    }
+
+    [Fact]
+    public void TemplateLoader_parses_assetSlots_when_present()
+    {
+        var kamikaze = TemplateLoader.Get("enemies", "kamikaze");
+        Assert.NotNull(kamikaze);
+        Assert.NotEmpty(kamikaze!.AssetSlots);
+        Assert.Equal("enemy-sprite", kamikaze.AssetSlots[0].Pipeline);
+        Assert.Equal("animConfigKey", kamikaze.AssetSlots[0].Name);
+    }
+
+    [Fact]
+    public void TemplateLoader_returns_empty_slots_when_field_absent()
+    {
+        // weapons/beam.json has no assetSlots field.
+        var beam = TemplateLoader.Get("weapons", "beam");
+        Assert.NotNull(beam);
+        Assert.Empty(beam!.AssetSlots);
+    }
+
     [Fact]
     public void TemplateLoader_body_is_parseable_json_and_carries_dataType()
     {

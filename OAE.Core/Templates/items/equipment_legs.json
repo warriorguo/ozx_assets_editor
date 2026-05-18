@@ -1,0 +1,25 @@
+{
+  "id": "equipment_legs",
+  "label": "Equipment — legs",
+  "description": "Equippable legs item referencing a LegData by refId. Modeled after legs_ltlegs.",
+  "assetSlots": [
+    {
+      "name": "spriteKey",
+      "pipeline": "item-icon",
+      "hint": "Inventory icon for this legs item"
+    }
+  ],
+  "body": {
+    "dataType": "ItemData",
+    "id": "",
+    "type": "legs",
+    "displayName": "",
+    "effects": [],
+    "value": 0,
+    "spriteKey": "",
+    "stackable": false,
+    "inventoryItem": true,
+    "rarity": "common",
+    "refId": ""
+  }
+}

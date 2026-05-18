@@ -1,0 +1,17 @@
+{
+  "id": "linear",
+  "label": "Linear (straight line)",
+  "description": "Straight-line projectile. The simplest trajectory; default for bullets.",
+  "body": {
+    "dataType": "ProjectileData",
+    "id": "",
+    "speed": 6,
+    "lifetime": 3,
+    "pierceCount": 0,
+    "collisionMask": "Player",
+    "onHitEffects": [],
+    "trajectory": "straight",
+    "impactFxKey": "",
+    "impactDecalCategory": ""
+  }
+}

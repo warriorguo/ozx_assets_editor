@@ -1,0 +1,36 @@
+{
+  "id": "melee",
+  "label": "Melee contact attacker",
+  "description": "Ground enemy that damages the player on contact. Modeled after bubble.",
+  "assetSlots": [
+    {
+      "name": "animConfigKey",
+      "pipeline": "enemy-sprite",
+      "hint": "Sprite sheet for idle/walk frames"
+    }
+  ],
+  "body": {
+    "dataType": "EnemyData",
+    "id": "",
+    "displayName": "",
+    "type": "normal",
+    "category": "plant",
+    "role": "zoner",
+    "movementType": "ground",
+    "attackType": "melee",
+    "size": 1.0,
+    "stats": {
+      "hp": 100,
+      "moveSpeed": 0.5,
+      "attack": 5,
+      "defense": 0,
+      "attackRange": 0.5
+    },
+    "aiProfileId": "ai_stationary_melee",
+    "dropTableId": "common_enemy",
+    "animConfigKey": "",
+    "weaponConfig": {
+      "attackCooldown": 2.0
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "consumable_xp",
+  "label": "Consumable — XP",
+  "description": "Experience crystal. Grants 'value' XP when picked up. Modeled after exp_large.",
+  "body": {
+    "dataType": "ItemData",
+    "id": "",
+    "type": "exp",
+    "displayName": "",
+    "effects": [],
+    "value": 50
+  }
+}

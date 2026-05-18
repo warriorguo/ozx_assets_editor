@@ -1,0 +1,18 @@
+{
+  "id": "beam",
+  "label": "Beam weapon",
+  "description": "Continuous beam emitter referencing a Beam definition. Modeled after laser_rifle.",
+  "body": {
+    "dataType": "WeaponData",
+    "id": "",
+    "displayName": "",
+    "category": "beam",
+    "fireMode": "auto",
+    "damage": 14,
+    "fireRate": 2.5,
+    "critRate": 0.05,
+    "beamId": "",
+    "aimMode": "autoTarget",
+    "spriteKeys": []
+  }
+}

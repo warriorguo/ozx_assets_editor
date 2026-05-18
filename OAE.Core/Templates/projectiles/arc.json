@@ -1,0 +1,18 @@
+{
+  "id": "arc",
+  "label": "Arc (parabolic)",
+  "description": "Projectile following a parabolic arc; arcHeight sets the peak.",
+  "body": {
+    "dataType": "ProjectileData",
+    "id": "",
+    "speed": 6,
+    "lifetime": 3,
+    "pierceCount": 0,
+    "collisionMask": "Player",
+    "onHitEffects": [],
+    "trajectory": "arc",
+    "arcHeight": 2.0,
+    "impactFxKey": "",
+    "impactDecalCategory": ""
+  }
+}

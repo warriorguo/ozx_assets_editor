@@ -1,0 +1,28 @@
+{
+  "id": "ability",
+  "label": "Ability (active, projectile-launching)",
+  "description": "Active skill that fires a projectile or AoE. References a projectile id.",
+  "assetSlots": [
+    {
+      "name": "iconKeys[0]",
+      "pipeline": "skill-sprite",
+      "hint": "Icon shown in the skill picker UI"
+    }
+  ],
+  "body": {
+    "dataType": "SkillData",
+    "id": "",
+    "displayName": "",
+    "type": "active",
+    "maxLevel": 3,
+    "rarity": 2,
+    "weight": 50,
+    "requirements": { "minFloor": 1 },
+    "effectsByLevel": [
+      { "effectType": "ability", "abilityType": "projectile", "damage": 15, "radius": 2, "cooldown": 8, "projectileId": "" },
+      { "effectType": "ability", "abilityType": "projectile", "damage": 22, "radius": 2, "cooldown": 7, "projectileId": "" },
+      { "effectType": "ability", "abilityType": "projectile", "damage": 30, "radius": 2, "cooldown": 6, "projectileId": "" }
+    ],
+    "iconKeys": []
+  }
+}

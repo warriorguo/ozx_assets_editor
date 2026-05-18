@@ -5,19 +5,29 @@ using System.Text.Json.Nodes;
 namespace OAE.Core.Templates;
 
 /// <summary>
+/// One asset slot declared by a template — the wizard renders one drop zone
+/// per slot, the pipeline name is passed to <c>import_asset.py</c> when the
+/// new entity is saved. See OAE-15 for the wizard side.
+/// </summary>
+public sealed record AssetSlot(string Name, string Pipeline, string? Hint);
+
+/// <summary>
 /// One creation template for an entity type. The body is the partial JSON
 /// the form pre-fills when the user clicks 'New' and picks this template.
+/// Slots are surfaced as drop zones in the wizard (OAE-15 follow-up).
 /// </summary>
 public sealed record TemplateDescriptor(
     string Id,
     string Label,
     string? Description,
-    string Body);
+    string Body,
+    IReadOnlyList<AssetSlot> AssetSlots);
 
 /// <summary>
 /// Loads JSON templates embedded under <c>OAE.Core/Templates/&lt;type&gt;/*.json</c>.
 /// Each file is a wrapper with <c>id</c>, <c>label</c>, <c>description</c>,
-/// <c>body</c>; <see cref="TemplateDescriptor.Body"/> is the body re-serialised.
+/// optional <c>assetSlots</c>, and <c>body</c>; <see cref="TemplateDescriptor.Body"/>
+/// is the body re-serialised.
 /// </summary>
 public static class TemplateLoader
 {
@@ -64,9 +74,11 @@ public static class TemplateLoader
             var body = node["body"];
             var bodyJson = body is null ? "{}" : body.ToJsonString(jsonOpts);
 
+            var slots = ParseAssetSlots(node["assetSlots"] as JsonArray);
+
             if (!byType.TryGetValue(typeId, out var list))
                 byType[typeId] = list = new List<TemplateDescriptor>();
-            list.Add(new TemplateDescriptor(templateId, label, description, bodyJson));
+            list.Add(new TemplateDescriptor(templateId, label, description, bodyJson, slots));
         }
 
         foreach (var list in byType.Values)
@@ -75,5 +87,21 @@ public static class TemplateLoader
         return byType.ToDictionary(
             kv => kv.Key,
             kv => (IReadOnlyList<TemplateDescriptor>)kv.Value);
+    }
+
+    private static IReadOnlyList<AssetSlot> ParseAssetSlots(JsonArray? arr)
+    {
+        if (arr is null || arr.Count == 0) return Array.Empty<AssetSlot>();
+        var slots = new List<AssetSlot>(arr.Count);
+        foreach (var item in arr)
+        {
+            if (item is not JsonObject obj) continue;
+            var slotName = obj["name"]?.GetValue<string?>();
+            var pipeline = obj["pipeline"]?.GetValue<string?>();
+            if (string.IsNullOrEmpty(slotName) || string.IsNullOrEmpty(pipeline)) continue;
+            var hint = obj["hint"]?.GetValue<string?>();
+            slots.Add(new AssetSlot(slotName!, pipeline!, hint));
+        }
+        return slots;
     }
 }

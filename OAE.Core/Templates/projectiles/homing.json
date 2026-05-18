@@ -1,0 +1,18 @@
+{
+  "id": "homing",
+  "label": "Homing (turns toward target)",
+  "description": "Projectile that rotates toward the player at homingTurnRate degrees/sec. Modeled after proj_missile_blue.",
+  "body": {
+    "dataType": "ProjectileData",
+    "id": "",
+    "speed": 4,
+    "lifetime": 5,
+    "pierceCount": 0,
+    "collisionMask": "Player",
+    "onHitEffects": [],
+    "trajectory": "homing",
+    "homingTurnRate": 180,
+    "impactFxKey": "",
+    "impactDecalCategory": ""
+  }
+}

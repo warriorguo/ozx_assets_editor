@@ -2,6 +2,13 @@
   "id": "kamikaze",
   "label": "Kamikaze (charge + self-destruct)",
   "description": "Bug-style enemy that charges the player and explodes on contact. Modeled after arack_orange.",
+  "assetSlots": [
+    {
+      "name": "animConfigKey",
+      "pipeline": "enemy-sprite",
+      "hint": "Sprite sheet for walk/attack frames"
+    }
+  ],
   "body": {
     "dataType": "EnemyData",
     "id": "",
@@ -20,7 +27,7 @@
     "role": "chaser",
     "attackType": "kamikaze",
     "animConfigKey": "",
-    "dropTableId": "loot_common",
+    "dropTableId": "common_enemy",
     "spriteKeys": [],
     "weaponConfig": {
       "kamikazeSelfDamagePercent": 0.5,

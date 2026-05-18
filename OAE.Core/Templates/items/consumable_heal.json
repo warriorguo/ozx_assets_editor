@@ -1,0 +1,13 @@
+{
+  "id": "consumable_heal",
+  "label": "Consumable — heal",
+  "description": "Health potion. Restores 'value' HP when picked up. Modeled after health_large.",
+  "body": {
+    "dataType": "ItemData",
+    "id": "",
+    "type": "heal",
+    "displayName": "",
+    "effects": [],
+    "value": 30
+  }
+}

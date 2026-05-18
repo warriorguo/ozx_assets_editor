@@ -1,0 +1,26 @@
+{
+  "id": "heal",
+  "label": "Heal (active)",
+  "description": "Active skill that restores HP. Single-level template; expand as needed.",
+  "assetSlots": [
+    {
+      "name": "iconKeys[0]",
+      "pipeline": "skill-sprite",
+      "hint": "Icon shown in the skill picker UI"
+    }
+  ],
+  "body": {
+    "dataType": "SkillData",
+    "id": "",
+    "displayName": "",
+    "type": "active",
+    "maxLevel": 1,
+    "rarity": 2,
+    "weight": 50,
+    "requirements": { "minFloor": 0 },
+    "effectsByLevel": [
+      { "effectType": "heal", "value": 30, "cooldown": 10, "duration": 0 }
+    ],
+    "iconKeys": []
+  }
+}

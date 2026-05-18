@@ -61,7 +61,18 @@ public static class EditorMetadata
         // ── items ──────────────────────────────────────────────────────────
         [(typeof(ItemData), "spriteKey")] = new(AssetKey: "item-icon"),
 
-        // OAE-7 will fill in projectiles / loot_tables / spawn_plans / rooms / levels.
+        // OAE-7 field-level audit (2026-05-18): walked EnemyData, WeaponData,
+        // ProjectileData, SkillData, ItemData (and SkillEffectDescriptor) for
+        // additional ref/asset candidates. Nothing landed cleanly because:
+        //   - WeaponData.lightningId, fireSoundId, spriteKeys[] — no matching
+        //     entity-type bucket or import-asset pipeline exists today.
+        //   - ProjectileData.impactFxKey — custom 'fx/key#ChildId@RRGGBB'
+        //     format with embedded params; no pipeline. Treat as opaque.
+        //   - ItemData.refId — cross-type (legs/skills/items depending on
+        //     ItemData.type). OAE-6 v1 picker handles single-type only.
+        //   - EnemyData.attackSetId — no attack-set entity bucket exists.
+        // OAE-9 / OAE-11 will add the missing buckets; this map gets revised
+        // then, not before.
     };
 
     public static EditorMeta? For(Type rootType, string jsonPath) =>

@@ -1,0 +1,30 @@
+{
+  "id": "stat_mod",
+  "label": "Stat modifier (passive)",
+  "description": "Passive skill that modifies a stat per level. Modeled after attack_boost / fire_rate_boost.",
+  "assetSlots": [
+    {
+      "name": "iconKeys[0]",
+      "pipeline": "skill-sprite",
+      "hint": "Icon shown in the skill picker UI"
+    }
+  ],
+  "body": {
+    "dataType": "SkillData",
+    "id": "",
+    "displayName": "",
+    "type": "passive",
+    "maxLevel": 5,
+    "rarity": 1,
+    "weight": 100,
+    "requirements": { "minFloor": 0 },
+    "effectsByLevel": [
+      { "effectType": "statMod", "stat": "Attack", "modType": "flat", "value": 5 },
+      { "effectType": "statMod", "stat": "Attack", "modType": "flat", "value": 10 },
+      { "effectType": "statMod", "stat": "Attack", "modType": "flat", "value": 15 },
+      { "effectType": "statMod", "stat": "Attack", "modType": "flat", "value": 22 },
+      { "effectType": "statMod", "stat": "Attack", "modType": "flat", "value": 30 }
+    ],
+    "iconKeys": []
+  }
+}
