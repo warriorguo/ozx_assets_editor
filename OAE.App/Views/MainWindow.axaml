@@ -115,7 +115,12 @@
             <!-- MIDDLE: entity list -->
             <Border Grid.Column="1" Classes="divider" Background="#13171F" Padding="0,12">
                 <DockPanel LastChildFill="True">
-                    <TextBlock DockPanel.Dock="Top" Classes="section" Text="ENTITIES" Margin="14,0,14,6"/>
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="14,0,10,6">
+                        <TextBlock Grid.Column="0" Classes="section" Text="ENTITIES" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="+ New" Click="OnNewEntityClick" Padding="10,3"
+                                FontSize="11"
+                                IsEnabled="{Binding SelectedType, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    </Grid>
                     <TextBox DockPanel.Dock="Top" Margin="10,0,10,8"
                              PlaceholderText="Filter…" Text="{Binding EntityFilter, Mode=TwoWay}"/>
                     <ListBox ItemsSource="{Binding Entities}" SelectedItem="{Binding SelectedEntity}"

@@ -12,6 +12,7 @@ using OAE.Core.References;
 using OAE.Core.Resources;
 using OAE.Core.Schema;
 using OAE.Core.Store;
+using OAE.Core.Templates;
 
 namespace OAE.App.ViewModels;
 
@@ -179,6 +180,38 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     public void Revert() => LoadSelectedEntity();
+
+    /// <summary>
+    /// Create a new entity of <paramref name="typeId"/> from
+    /// <paramref name="templateId"/>, writing the template body with
+    /// <c>id</c> (and <c>displayName</c> when supplied) overridden. Returns
+    /// the error message on failure, <c>null</c> on success.
+    /// </summary>
+    public string? CreateFromTemplate(string typeId, string templateId, string newId, string? displayName)
+    {
+        var template = TemplateLoader.Get(typeId, templateId);
+        if (template is null) return $"template not found: {typeId}/{templateId}";
+
+        string json;
+        try
+        {
+            json = TemplateLoader.BuildBodyForNewEntity(template, newId, displayName) + "\n";
+        }
+        catch (Exception ex) { return $"template body parse failed: {ex.Message}"; }
+
+        try
+        {
+            _store.Create(typeId, newId, json);
+        }
+        catch (Exception ex) { return ex.Message; }
+
+        // Refresh the navigation + caches and surface the new entity.
+        References.Rebuild(_store);
+        RefreshEntities();
+        var newItem = Entities.FirstOrDefault(e => e.Id == newId);
+        if (newItem is not null) SelectedEntity = newItem;
+        return null;
+    }
 
     private void RefreshStatus()
     {

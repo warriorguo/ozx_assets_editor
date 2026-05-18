@@ -120,4 +120,20 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel vm) vm.Revert();
     }
+
+    private async void OnNewEntityClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || vm.SelectedType is null) return;
+        var dialog = new NewEntityDialog();
+        dialog.Configure(vm.SelectedType.Id, vm.References);
+        var result = await dialog.ShowDialog<NewEntityResult?>(this);
+        if (result is null) return;
+        var err = vm.CreateFromTemplate(vm.SelectedType.Id, result.TemplateId, result.NewId, result.DisplayName);
+        if (err is not null)
+        {
+            // Re-open the dialog with the same values so the user can fix and retry.
+            // For v1 we just surface via the save-status line.
+            vm.SaveStatus = $"Create failed: {err}";
+        }
+    }
 }

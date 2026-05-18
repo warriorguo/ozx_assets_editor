@@ -89,6 +89,21 @@ public static class TemplateLoader
             kv => (IReadOnlyList<TemplateDescriptor>)kv.Value);
     }
 
+    /// <summary>
+    /// Materialise <paramref name="template"/>'s body with <c>id</c> (and
+    /// <c>displayName</c> when present in the body and a value is supplied)
+    /// overridden. Returns the JSON ready to write through <c>IStore.Create</c>.
+    /// </summary>
+    public static string BuildBodyForNewEntity(TemplateDescriptor template, string newId, string? displayName)
+    {
+        var node = JsonNode.Parse(template.Body)?.AsObject()
+                   ?? throw new InvalidOperationException("template body is not a JSON object");
+        node["id"] = JsonValue.Create(newId);
+        if (!string.IsNullOrEmpty(displayName) && node.ContainsKey("displayName"))
+            node["displayName"] = JsonValue.Create(displayName);
+        return node.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+    }
+
     private static IReadOnlyList<AssetSlot> ParseAssetSlots(JsonArray? arr)
     {
         if (arr is null || arr.Count == 0) return Array.Empty<AssetSlot>();

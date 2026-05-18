@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="360"
+        Width="520" SizeToContent="Height"
+        x:Class="OAE.App.Views.NewEntityDialog"
+        Title="New Entity"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#181C25">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#7A8290"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Spacing="14" Margin="20">
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="TYPE"/>
+            <TextBlock Name="TypeText" FontFamily="Menlo,Monaco,Consolas" FontSize="13" Foreground="#D8DCE4"/>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="TEMPLATE"/>
+            <ComboBox Name="TemplateBox" HorizontalAlignment="Stretch"/>
+            <TextBlock Name="TemplateDescription" FontSize="11" Foreground="#7A8290" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="ID  (lowercase, digits, underscores)"/>
+            <TextBox Name="IdBox" FontFamily="Menlo,Monaco,Consolas" FontSize="12"
+                     PlaceholderText="e.g. test_bug"/>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="DISPLAY NAME  (optional)"/>
+            <TextBox Name="DisplayNameBox" FontSize="12" PlaceholderText="e.g. Test Bug"/>
+        </StackPanel>
+
+        <TextBlock Name="ErrorLine" FontSize="11" Foreground="#E39B9B" IsVisible="False"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
+            <Button Content="Cancel" Click="OnCancelClick" Padding="14,6"/>
+            <Button Name="OkButton" Content="Create" Click="OnOkClick" Padding="16,6"
+                    Background="#2C6BE6" Foreground="White" IsEnabled="False"/>
+        </StackPanel>
+    </StackPanel>
+</Window>
