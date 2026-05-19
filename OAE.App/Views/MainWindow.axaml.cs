@@ -121,6 +121,33 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel vm) vm.Revert();
     }
 
+    private async void OnResourcesClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || vm.AssetLocator is null) return;
+        var projectRoot = vm.Config.ProjectRoot;
+        if (string.IsNullOrEmpty(projectRoot)) return;
+
+        var dbPath = OAE.Core.Resources.ResourcesDbStore.DefaultPathFor(projectRoot);
+        if (!System.IO.File.Exists(dbPath))
+        {
+            vm.SaveStatus = $"ResourcesDB.asset not found at {dbPath}";
+            return;
+        }
+
+        var store = new OAE.Core.Resources.ResourcesDbStore();
+        store.Load(dbPath);
+
+        var window = new ResourcesWindow();
+        window.Configure(store, vm.AssetLocator.Meta);
+        await window.ShowDialog(this);
+
+        // Refresh the locator's read-only DB cache so other parts of the app
+        // (asset resolution, picker dropdowns) see any new keys.
+        try { vm.AssetLocator.Build(); }
+        catch { /* best effort */ }
+        vm.ReloadCurrentEntity();
+    }
+
     private async void OnNewEntityClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm || vm.SelectedType is null) return;

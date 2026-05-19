@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="520" d:DesignHeight="400"
+        Width="540" SizeToContent="Height"
+        x:Class="OAE.App.Views.AddResourceDialog"
+        Title="Add ResourcesDB entry"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#181C25">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#7A8290"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+    </Window.Styles>
+
+    <StackPanel Spacing="12" Margin="20">
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="KEY  (e.g. anim/my_enemy, item/my_icon)"/>
+            <TextBox Name="KeyBox" FontFamily="Menlo,Monaco,Consolas" FontSize="12"
+                     PlaceholderText="lowercase, slashes and @ allowed"/>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="ASSET FILE"/>
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0" Name="PathBox" IsReadOnly="True"
+                         FontFamily="Menlo,Monaco,Consolas" FontSize="11"
+                         PlaceholderText="(none selected)"/>
+                <Button Grid.Column="1" Content="Pick…" Click="OnPickClick" Padding="14,6" Margin="6,0,0,0"/>
+            </Grid>
+            <TextBlock Name="GuidText" Foreground="#7A8290" FontSize="10.5" FontFamily="Menlo,Monaco,Consolas"/>
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Classes="label" Text="TYPE"/>
+            <ComboBox Name="TypeBox" HorizontalAlignment="Stretch"/>
+        </StackPanel>
+
+        <TextBlock Name="ErrorLine" FontSize="11" Foreground="#E39B9B" IsVisible="False"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
+            <Button Content="Cancel" Click="OnCancelClick" Padding="14,6"/>
+            <Button Name="OkButton" Content="Add" Click="OnOkClick" Padding="16,6"
+                    Background="#2C6BE6" Foreground="White" IsEnabled="False"/>
+        </StackPanel>
+    </StackPanel>
+</Window>
