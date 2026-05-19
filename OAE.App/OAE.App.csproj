@@ -5,6 +5,13 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Published binary becomes Contents/MacOS/OAE inside the .app bundle. -->
+    <AssemblyName>OAE</AssemblyName>
+    <!-- Runtimes the .app bundler targets via `dotnet publish -r <rid>`. -->
+    <RuntimeIdentifiers>osx-arm64;osx-x64</RuntimeIdentifiers>
+    <!-- Avalonia ships managed-only NuGets that load native deps; keep them
+         embedded inside the single-file binary so a clean Mac runs it. -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>

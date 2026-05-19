@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>OAE</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>OZX Assets Editor</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>com.warriorguo.oae</string>
+
+    <key>CFBundleVersion</key>
+    <string>0.1.0</string>
+
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+
+    <key>CFBundleExecutable</key>
+    <string>OAE</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleSignature</key>
+    <string>????</string>
+
+    <key>LSMinimumSystemVersion</key>
+    <string>11.0</string>
+
+    <key>NSHighResolutionCapable</key>
+    <true/>
+
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.developer-tools</string>
+
+    <!-- The app reads/writes files inside a user-picked project folder; declare
+         the read-write usage so first launch surfaces a sensible prompt. -->
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>OAE needs access to the project folder you select to read and write game asset files.</string>
+
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>OAE needs access to the project folder you select to read and write game asset files.</string>
+</dict>
+</plist>
