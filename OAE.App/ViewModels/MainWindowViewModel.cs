@@ -61,7 +61,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var resolved = ResolvedConfig.Resolve(ConfigPath, Config);
         _store.Swap(StoreFactory.CreateForProject(resolved.UsesFallback ? null : resolved.GameDataDir));
         RebuildAssetLocator();
-        References.Rebuild(_store);
+        RebuildReferenceIndex();
         RefreshStatus();
         RefreshTypes();
     }
@@ -144,9 +144,36 @@ public partial class MainWindowViewModel : ViewModelBase
         var resolved = ResolvedConfig.Resolve(ConfigPath, Config);
         _store.Swap(StoreFactory.CreateForProject(resolved.UsesFallback ? null : resolved.GameDataDir));
         RebuildAssetLocator();
-        References.Rebuild(_store);
+        RebuildReferenceIndex();
         RefreshStatus();
         RefreshTypes();
+    }
+
+    /// <summary>
+    /// Rebuild the reference picker's id cache. Pulls entity-type ids from
+    /// the store and merges any virtual-type sources (e.g. SoundConfig
+    /// soundIds for the 'sounds' picker target).
+    /// </summary>
+    public void RebuildReferenceIndex()
+    {
+        var virtuals = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+        var sounds = TryLoadSounds();
+        if (sounds is not null) virtuals["sounds"] = sounds;
+        References.Rebuild(_store, new ReferenceIndex.RebuildOptions(virtuals));
+    }
+
+    private IReadOnlyList<string>? TryLoadSounds()
+    {
+        if (string.IsNullOrEmpty(Config.ProjectRoot)) return null;
+        var path = SoundConfigStore.DefaultPathFor(Config.ProjectRoot);
+        if (!File.Exists(path)) return null;
+        try
+        {
+            var store = new SoundConfigStore();
+            store.Load(path);
+            return store.List().Select(e => e.SoundId).ToList();
+        }
+        catch { return null; }
     }
 
     private void RebuildAssetLocator()
@@ -171,7 +198,7 @@ public partial class MainWindowViewModel : ViewModelBase
             SaveStatus = $"Saved {SelectedEntity.Id} at {DateTime.Now:HH:mm:ss}";
             // A new id may have been added (or a rename, eventually) — keep the
             // picker dropdowns in sync.
-            References.Rebuild(_store);
+            RebuildReferenceIndex();
         }
         catch (Exception ex)
         {
@@ -206,7 +233,7 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex) { return ex.Message; }
 
         // Refresh the navigation + caches and surface the new entity.
-        References.Rebuild(_store);
+        RebuildReferenceIndex();
         RefreshEntities();
         var newItem = Entities.FirstOrDefault(e => e.Id == newId);
         if (newItem is not null) SelectedEntity = newItem;

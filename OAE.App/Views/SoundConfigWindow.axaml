@@ -1,0 +1,57 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="using:OAE.App.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        Width="800" Height="600"
+        x:Class="OAE.App.Views.SoundConfigWindow"
+        Title="SoundConfig"
+        Background="#181C25"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#7A8290"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel LastChildFill="True">
+        <Border DockPanel.Dock="Top" Background="#141821" Padding="14,10"
+                BorderBrush="#1F242C" BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <TextBlock Classes="label" Text="SOUNDCONFIG"/>
+                    <TextBlock Name="StatusText" Foreground="#D8DCE4" FontSize="12.5"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Remove" Click="OnRemoveClick"
+                        Padding="14,6" Margin="6,0"
+                        IsEnabled="{Binding ElementName=EntryList, Path=SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <Button Grid.Column="2" Content="+ Add" Padding="14,6"
+                        IsEnabled="False"
+                        ToolTip.Tip="Adding new SFX entries lands in a follow-up — pick the wav, set the soundId, defaults."/>
+            </Grid>
+        </Border>
+
+        <Grid DockPanel.Dock="Top" Margin="14,10,14,6">
+            <TextBox Name="FilterBox" PlaceholderText="Filter by soundId…" FontSize="12"/>
+        </Grid>
+
+        <ListBox Name="EntryList" Margin="10,0,10,10" Padding="6,0">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="views:SoundRow">
+                    <Grid ColumnDefinitions="2*,3*" Margin="0,2">
+                        <TextBlock Grid.Column="0" Text="{Binding SoundId}"
+                                   FontFamily="Menlo,Monaco,Consolas" FontSize="12.5"
+                                   Foreground="#D8DCE4" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Summary}"
+                                   FontFamily="Menlo,Monaco,Consolas" FontSize="10.5"
+                                   Foreground="#7A8290" TextTrimming="CharacterEllipsis"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</Window>

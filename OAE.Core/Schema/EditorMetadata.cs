@@ -51,6 +51,9 @@ public static class EditorMetadata
         // until that pipeline is authored under import-asset.
         [(typeof(WeaponData), "projectileId")]           = new(RefTarget: "projectiles"),
         [(typeof(WeaponData), "beamId")]                 = new(RefTarget: "beams"),
+        // 'sounds' is a virtual ref-target backed by SoundConfigStore (OAE-11).
+        // ReferenceIndex.Rebuild merges SoundConfigStore.List() under this id.
+        [(typeof(WeaponData), "fireSoundId")]            = new(RefTarget: "sounds"),
 
         // ── skills ─────────────────────────────────────────────────────────
         [(typeof(SkillData), "effectsByLevel[].projectileId")] = new(RefTarget: "projectiles"),

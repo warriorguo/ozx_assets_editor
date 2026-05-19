@@ -121,6 +121,31 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel vm) vm.Revert();
     }
 
+    private async void OnSoundsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        var projectRoot = vm.Config.ProjectRoot;
+        if (string.IsNullOrEmpty(projectRoot)) return;
+
+        var path = OAE.Core.Resources.SoundConfigStore.DefaultPathFor(projectRoot);
+        if (!System.IO.File.Exists(path))
+        {
+            vm.SaveStatus = $"SoundConfig.asset not found at {path}";
+            return;
+        }
+        var store = new OAE.Core.Resources.SoundConfigStore();
+        store.Load(path);
+
+        var window = new SoundConfigWindow();
+        window.Configure(store);
+        await window.ShowDialog(this);
+
+        // SFX entries may have been removed — refresh the picker's 'sounds'
+        // virtual-type ids so weapon.fireSoundId etc. stay in sync.
+        vm.RebuildReferenceIndex();
+        vm.ReloadCurrentEntity();
+    }
+
     private async void OnResourcesClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm || vm.AssetLocator is null) return;
