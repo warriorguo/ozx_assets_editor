@@ -121,6 +121,16 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel vm) vm.Revert();
     }
 
+    private async void OnImagesClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        var projectRoot = vm.Config.ProjectRoot;
+        if (string.IsNullOrEmpty(projectRoot)) return;
+        var window = new ImagesBrowserWindow();
+        window.Configure(projectRoot);
+        await window.ShowDialog(this);
+    }
+
     private async void OnSoundsClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm) return;

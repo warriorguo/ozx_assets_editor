@@ -1,0 +1,88 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="using:OAE.App.Views"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
+        Width="1100" Height="700"
+        x:Class="OAE.App.Views.ImagesBrowserWindow"
+        Title="Images browser"
+        Background="#181C25"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#7A8290"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Border.pane">
+            <Setter Property="BorderBrush" Value="#1F242C"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel LastChildFill="True">
+        <Border DockPanel.Dock="Top" Background="#141821" Padding="14,10"
+                BorderBrush="#1F242C" BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock Classes="label" Text="IMAGES"/>
+                <TextBlock Name="StatusText" Foreground="#D8DCE4" FontSize="12.5"/>
+            </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="260,260,*">
+            <!-- LEFT: folder tree -->
+            <Border Grid.Column="0" Classes="pane" Background="#0F1115" Padding="0,10">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Classes="label" Text="FOLDERS" Margin="12,0,12,6"/>
+                    <TreeView Name="FolderTree" Padding="6,0">
+                        <TreeView.ItemTemplate>
+                            <TreeDataTemplate DataType="views:FolderNode" ItemsSource="{Binding Children}">
+                                <TextBlock Text="{Binding Name}" FontFamily="Menlo,Monaco,Consolas" FontSize="12"/>
+                            </TreeDataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
+                </DockPanel>
+            </Border>
+
+            <!-- MIDDLE: file list -->
+            <Border Grid.Column="1" Classes="pane" Background="#13171F" Padding="0,10">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Classes="label" Text="IMAGES IN FOLDER" Margin="12,0,12,6"/>
+                    <ListBox Name="FileList" Padding="6,0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="views:ImageFile">
+                                <StackPanel Margin="2,2">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontFamily="Menlo,Monaco,Consolas" FontSize="12"/>
+                                    <TextBlock Text="{Binding Size}" FontSize="10"
+                                               Foreground="#5C6573"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- RIGHT: preview -->
+            <Border Grid.Column="2" Background="#181C25" Padding="16">
+                <DockPanel LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Top" Spacing="2">
+                        <TextBlock Name="PreviewName"
+                                   FontFamily="Menlo,Monaco,Consolas" FontSize="13"
+                                   Foreground="#D8DCE4"/>
+                        <TextBlock Name="PreviewDims" FontSize="11" Foreground="#7A8290"/>
+                        <TextBlock Name="PreviewSlice" FontSize="11" Foreground="#7A8290"/>
+                        <TextBlock Name="PreviewPath"
+                                   FontFamily="Menlo,Monaco,Consolas" FontSize="10.5"
+                                   Foreground="#5C6573" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <Border Background="#0F1115" CornerRadius="4" Margin="0,12,0,0">
+                        <Image Name="PreviewImage" Stretch="Uniform" Margin="6"/>
+                    </Border>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>
