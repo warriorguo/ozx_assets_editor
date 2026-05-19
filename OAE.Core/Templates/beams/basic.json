@@ -1,0 +1,18 @@
+{
+  "id": "basic",
+  "label": "Basic beam",
+  "description": "Continuous beam definition referenced by a beam-category weapon. Modeled after laser_stream.",
+  "body": {
+    "dataType": "BeamData",
+    "id": "",
+    "range": 12,
+    "pierceCount": 0,
+    "lifetime": 0.08,
+    "width": 0.08,
+    "startColorHex": "#FFFFFFFF",
+    "endColorHex": "#FFFFFFFF",
+    "knockback": 1.5,
+    "muzzleFxKey": null,
+    "impactFxKey": ""
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "basic",
+  "label": "Single-floor base plan",
+  "description": "One-floor plan with teaching / building / pressure / peak stage portions. Modeled after plan_early_1floor.",
+  "body": {
+    "dataType": "LevelBasePlanData",
+    "id": "",
+    "floors": [
+      {
+        "roomCountMin": 6,
+        "roomCountMax": 10,
+        "themeId": "themes/default",
+        "stageTypes": [
+          { "stageType": "teaching", "portion": 0.25,  "spawnPlanId": "", "lootPlanId": null },
+          { "stageType": "building", "portion": 0.25,  "spawnPlanId": "", "lootPlanId": "common_enemy" },
+          { "stageType": "pressure", "portion": 0.375, "spawnPlanId": "", "lootPlanId": "rare_enemy" },
+          { "stageType": "peak",     "portion": 0.125, "spawnPlanId": "", "lootPlanId": "rare_enemy" }
+        ],
+        "transitionKeyId": null
+      }
+    ]
+  }
+}

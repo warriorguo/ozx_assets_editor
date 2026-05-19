@@ -148,6 +148,17 @@ public class SchemaTests
             $"{typeId}: expected >= {min} templates, got {templates.Count}");
     }
 
+    [Theory]
+    [MemberData(nameof(AllTypeIds))]
+    public void TemplateLoader_has_at_least_one_template_for_every_type(string typeId)
+    {
+        var templates = TemplateLoader.For(typeId);
+        Assert.NotEmpty(templates);
+    }
+
+    public static IEnumerable<object[]> AllTypeIds() =>
+        EntityTypes.Map.Keys.Select(k => new object[] { k });
+
     [Fact]
     public void TemplateLoader_parses_assetSlots_when_present()
     {

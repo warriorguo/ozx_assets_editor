@@ -1,0 +1,19 @@
+{
+  "id": "basic",
+  "label": "Single-wave spawn plan",
+  "description": "One wave of enemies, all-dead clear condition. Add waves[] for multi-wave encounters.",
+  "body": {
+    "dataType": "SpawnPlanData",
+    "id": "",
+    "waves": [
+      {
+        "delay": 0.5,
+        "entries": [
+          { "enemyId": "", "count": 3 }
+        ]
+      }
+    ],
+    "maxAlive": 10,
+    "clearCondition": "allDead"
+  }
+}

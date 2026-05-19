@@ -1,0 +1,27 @@
+{
+  "id": "basic",
+  "label": "Demo level (one floor, one room)",
+  "description": "Bare level with a single starting room. Expand floors[] / rooms[] as needed.",
+  "body": {
+    "dataType": "LevelData",
+    "id": "",
+    "displayName": "",
+    "floors": [
+      {
+        "index": 0,
+        "startRoomId": "start",
+        "bossRoomId": null,
+        "rooms": [
+          {
+            "roomId": "start",
+            "templateId": "",
+            "roomCategory": "normal",
+            "doors": [],
+            "spawnPlanId": "",
+            "lootPlanId": null
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "id": "basic",
+  "label": "Contact-damage shield",
+  "description": "Player shield that damages enemies on contact. Modeled after shield_blue.",
+  "body": {
+    "dataType": "ShieldData",
+    "id": "",
+    "variant": "Blue",
+    "radius": 1.5,
+    "contactDamage": 15,
+    "attack": 15,
+    "defense": 0,
+    "knockback": 5.0,
+    "hp": 100
+  }
+}

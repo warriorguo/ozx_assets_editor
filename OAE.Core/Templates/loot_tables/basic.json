@@ -1,0 +1,13 @@
+{
+  "id": "basic",
+  "label": "Weighted loot table",
+  "description": "List of weighted drop entries. itemId may reference an item, skill, or legs (cross-type — picker support pending).",
+  "body": {
+    "dataType": "LootTableData",
+    "id": "",
+    "entries": [
+      { "itemId": "item_exp_large",    "weight": 100, "minCount": 1, "maxCount": 2, "conditions": "" },
+      { "itemId": "item_health_large", "weight": 60,  "minCount": 1, "maxCount": 1, "conditions": "" }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "basic",
+  "label": "Walk-type legs",
+  "description": "Equippable legs definition. legType is one of walk / track / hover.",
+  "body": {
+    "dataType": "LegData",
+    "id": "",
+    "legType": "walk"
+  }
+}

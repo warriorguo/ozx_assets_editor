@@ -1,0 +1,50 @@
+{
+  "id": "multi_phase",
+  "label": "Multi-phase boss (3 phases)",
+  "description": "Boss with three health-threshold phases that add skills and bump stats. Modeled after necromancer. NOTE: phases[].addSkills uses SkillBinding[] (skillId + level), not plain strings.",
+  "assetSlots": [
+    {
+      "name": "spriteKeys[0]",
+      "pipeline": "enemy-sprite",
+      "hint": "Idle sprite sheet"
+    }
+  ],
+  "body": {
+    "dataType": "BossData",
+    "id": "",
+    "displayName": "",
+    "type": "boss",
+    "stats": {
+      "hp": 300,
+      "moveSpeed": 1.5,
+      "attack": 20,
+      "defense": 0
+    },
+    "aiProfileId": "",
+    "dropTableId": "loot_boss",
+    "spriteKeys": [],
+    "phases": [
+      {
+        "healthThreshold": 0.7,
+        "addSkills": [],
+        "statMultiplier": 1.0,
+        "summonPlanId": "",
+        "spriteKey": ""
+      },
+      {
+        "healthThreshold": 0.4,
+        "addSkills": [],
+        "statMultiplier": 1.3,
+        "summonPlanId": "",
+        "spriteKey": ""
+      },
+      {
+        "healthThreshold": 0.15,
+        "addSkills": [],
+        "statMultiplier": 1.6,
+        "summonPlanId": "",
+        "spriteKey": ""
+      }
+    ]
+  }
+}

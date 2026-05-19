@@ -1,0 +1,18 @@
+{
+  "id": "default",
+  "label": "Contact-combat tuning",
+  "description": "Tuning constants for melee/contact damage. Typically a singleton named 'default'.",
+  "body": {
+    "dataType": "ContactCombatTuning",
+    "id": "",
+    "K": 100,
+    "minDps": 1.0,
+    "playerAdvantageBias": 1.15,
+    "riskFactor": 1.0,
+    "directional": {
+      "back": 1.5,
+      "side": 1.2,
+      "front": 1.0
+    }
+  }
+}

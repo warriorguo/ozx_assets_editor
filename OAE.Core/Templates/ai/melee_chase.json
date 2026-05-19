@@ -1,0 +1,21 @@
+{
+  "id": "melee_chase",
+  "label": "Melee chaser (idle/chase/attack/dead)",
+  "description": "State machine for a melee enemy that idles, chases the player, attacks in range, and dies. Modeled after ai_melee_chase.",
+  "body": {
+    "dataType": "AIProfileData",
+    "id": "",
+    "states": [
+      { "name": "idle", "behavior": "stand" },
+      { "name": "chase", "behavior": "moveToPlayer" },
+      { "name": "attack", "behavior": "meleeAttack" },
+      { "name": "dead", "behavior": "die" }
+    ],
+    "transitions": [
+      { "fromState": "idle", "toState": "chase", "condition": "playerInRange", "threshold": 8.0 },
+      { "fromState": "chase", "toState": "attack", "condition": "playerInRange", "threshold": 1.5 },
+      { "fromState": "attack", "toState": "chase", "condition": "playerOutOfRange", "threshold": 2.0 },
+      { "fromState": "chase", "toState": "idle", "condition": "playerOutOfRange", "threshold": 12.0 }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "basic",
+  "label": "Default head",
+  "description": "Player head config — sets the number of weapon slots.",
+  "body": {
+    "dataType": "HeadData",
+    "id": "",
+    "maxWeaponSlots": 2
+  }
+}

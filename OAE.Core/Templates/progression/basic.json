@@ -1,0 +1,22 @@
+{
+  "id": "basic",
+  "label": "Player XP curve + rewards",
+  "description": "Exp-per-level table and per-level stat bonuses. Typically a singleton.",
+  "body": {
+    "dataType": "ProgressionData",
+    "id": "",
+    "levelCurve": [
+      { "level": 1, "expRequired": 0 },
+      { "level": 2, "expRequired": 100 },
+      { "level": 3, "expRequired": 250 },
+      { "level": 4, "expRequired": 500 },
+      { "level": 5, "expRequired": 900 }
+    ],
+    "levelRewards": [
+      { "level": 2, "hpBonus": 10, "atkBonus": 2 },
+      { "level": 3, "hpBonus": 15, "atkBonus": 3 },
+      { "level": 4, "hpBonus": 20, "atkBonus": 5 },
+      { "level": 5, "hpBonus": 30, "atkBonus": 8 }
+    ]
+  }
+}

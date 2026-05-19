@@ -61,18 +61,54 @@ public static class EditorMetadata
         // ── items ──────────────────────────────────────────────────────────
         [(typeof(ItemData), "spriteKey")] = new(AssetKey: "item-icon"),
 
-        // OAE-7 field-level audit (2026-05-18): walked EnemyData, WeaponData,
-        // ProjectileData, SkillData, ItemData (and SkillEffectDescriptor) for
-        // additional ref/asset candidates. Nothing landed cleanly because:
+        // ── bosses ─────────────────────────────────────────────────────────
+        [(typeof(BossData), "aiProfileId")]                     = new(RefTarget: "ai"),
+        [(typeof(BossData), "dropTableId")]                     = new(RefTarget: "loot_tables"),
+        [(typeof(BossData), "spriteKeys[]")]                    = new(AssetKey: "enemy-sprite"),
+        [(typeof(BossData), "phases[].summonPlanId")]           = new(RefTarget: "spawn_plans"),
+        // phases[].addSkills[].skillId is declared as SkillBinding[] but the
+        // necromancer.json encodes plain strings (OZX-380). The metadata is
+        // wired here so the picker works once the upstream data is fixed.
+        [(typeof(BossData), "phases[].addSkills[].skillId")]    = new(RefTarget: "skills"),
+
+        // ── spawn_plans ────────────────────────────────────────────────────
+        [(typeof(SpawnPlanData), "waves[].entries[].enemyId")]  = new(RefTarget: "enemies"),
+
+        // ── cargo / oiltank ────────────────────────────────────────────────
+        [(typeof(CargoData), "lootTableId")]                    = new(RefTarget: "loot_tables"),
+        [(typeof(OilTankData), "lootTableId")]                  = new(RefTarget: "loot_tables"),
+
+        // ── level_plans ────────────────────────────────────────────────────
+        [(typeof(LevelBasePlanData), "floors[].stageTypes[].spawnPlanId")] = new(RefTarget: "spawn_plans"),
+        [(typeof(LevelBasePlanData), "floors[].stageTypes[].lootPlanId")]  = new(RefTarget: "loot_tables"),
+
+        // ── levels ─────────────────────────────────────────────────────────
+        // floors[].rooms[].templateId references the rooms entity bucket
+        // (room templates), not in-file room ids. startRoomId / bossRoomId
+        // are scoped within the level itself — not annotated.
+        [(typeof(LevelData), "floors[].rooms[].templateId")]    = new(RefTarget: "rooms"),
+        [(typeof(LevelData), "floors[].rooms[].spawnPlanId")]   = new(RefTarget: "spawn_plans"),
+        [(typeof(LevelData), "floors[].rooms[].lootPlanId")]    = new(RefTarget: "loot_tables"),
+
+        // ── player ─────────────────────────────────────────────────────────
+        [(typeof(PlayerData), "headId")]                        = new(RefTarget: "heads"),
+        [(typeof(PlayerData), "startingSkills[].skillId")]      = new(RefTarget: "skills"),
+
+        // OAE-7/OAE-9 field-level audit notes:
         //   - WeaponData.lightningId, fireSoundId, spriteKeys[] — no matching
         //     entity-type bucket or import-asset pipeline exists today.
-        //   - ProjectileData.impactFxKey — custom 'fx/key#ChildId@RRGGBB'
-        //     format with embedded params; no pipeline. Treat as opaque.
-        //   - ItemData.refId — cross-type (legs/skills/items depending on
-        //     ItemData.type). OAE-6 v1 picker handles single-type only.
+        //   - ProjectileData.impactFxKey, BeamData.{muzzle,impact}FxKey —
+        //     custom 'fx/key#ChildId@RRGGBB' format with embedded params; no
+        //     pipeline. Treat as opaque.
+        //   - ItemData.refId, LootTableData.entries[].itemId — cross-type
+        //     (legs/skills/items depending on a sibling discriminator). The
+        //     OAE-6 v1 picker handles single-type only; cross-type lands in
+        //     a follow-up.
         //   - EnemyData.attackSetId — no attack-set entity bucket exists.
-        // OAE-9 / OAE-11 will add the missing buckets; this map gets revised
-        // then, not before.
+        //   - RoomData.prefabKey / tilemapKey — Unity asset paths with no
+        //     ResourcesDB or import-asset pipeline mapping.
+        //   - PlayerData.animConfigKey — could be enemy-sprite but player's
+        //     sprite pipeline has different conventions; left opaque.
     };
 
     public static EditorMeta? For(Type rootType, string jsonPath) =>

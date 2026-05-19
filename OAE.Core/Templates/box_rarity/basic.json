@@ -1,0 +1,16 @@
+{
+  "id": "basic",
+  "label": "Loot-box rarity tiers",
+  "description": "Defines the loot-box rarities (color + lock state + sprite + text color). Typically a singleton named 'box_rarity'.",
+  "body": {
+    "dataType": "BoxRarityConfigData",
+    "id": "",
+    "entries": [
+      { "rarity": "common",    "boxColor": "White",  "locked": false, "boxSpriteKey": "loot_box/White",  "textColor": "#CCCCCC" },
+      { "rarity": "uncommon",  "boxColor": "Blue",   "locked": false, "boxSpriteKey": "loot_box/Blue",   "textColor": "#4E8FE0" },
+      { "rarity": "rare",      "boxColor": "Green",  "locked": false, "boxSpriteKey": "loot_box/Green",  "textColor": "#4EC94E" },
+      { "rarity": "epic",      "boxColor": "Purple", "locked": true,  "boxSpriteKey": "loot_box/Purple", "textColor": "#A64ED6" },
+      { "rarity": "legendary", "boxColor": "Gold",   "locked": true,  "boxSpriteKey": "loot_box/Gold",   "textColor": "#FFB930" }
+    ]
+  }
+}

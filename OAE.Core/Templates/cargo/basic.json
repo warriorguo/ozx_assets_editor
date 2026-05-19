@@ -1,0 +1,16 @@
+{
+  "id": "basic",
+  "label": "Destructible cargo box",
+  "description": "Static destructible that drops loot when destroyed. Modeled after cargo_box_2.",
+  "body": {
+    "dataType": "CargoData",
+    "id": "",
+    "displayName": "",
+    "hitCount": 2,
+    "spriteKey": "",
+    "deathFxKeys": [],
+    "lootTableId": "common_enemy",
+    "corpseDecalKey": "",
+    "corpseDecalCategory": "normal"
+  }
+}

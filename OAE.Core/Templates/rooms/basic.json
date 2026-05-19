@@ -1,0 +1,19 @@
+{
+  "id": "basic",
+  "label": "Combat room (1-door)",
+  "description": "Single-door combat room with player + enemy spawn anchors. Tilemap is edited in ORT (OAE-12 deep-link).",
+  "body": {
+    "dataType": "RoomData",
+    "id": "",
+    "prefabKey": "",
+    "tilemapKey": "",
+    "roomType": "all",
+    "attributes": 0,
+    "openDoors": 1,
+    "anchors": [
+      { "type": "door", "direction": "left", "position": { "x": -10, "y": 0 } },
+      { "type": "playerSpawn", "direction": "", "position": { "x": -7, "y": 0 } },
+      { "type": "enemySpawn", "direction": "", "position": { "x": 5, "y": 0 } }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "basic",
+  "label": "Default player",
+  "description": "Player character base stats + starting skills. Typically a singleton.",
+  "body": {
+    "dataType": "PlayerData",
+    "id": "",
+    "displayName": "Player",
+    "animConfigKey": "anim/player",
+    "headId": "head_default",
+    "scanRadius": 5.0,
+    "stats": {
+      "hp": 100,
+      "maxHp": 100,
+      "attack": 10,
+      "moveSpeed": 5.0,
+      "acceleration": 50.0,
+      "deceleration": 80.0,
+      "critRate": 0.05,
+      "critDamage": 1.5,
+      "defense": 2.0
+    },
+    "startingSkills": []
+  }
+}

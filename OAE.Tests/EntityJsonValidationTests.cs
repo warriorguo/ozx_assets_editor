@@ -23,17 +23,26 @@ public class EntityJsonValidationTests
         AllowTrailingCommas = true,
     };
 
-    public static IEnumerable<object[]> P1Types() => new[]
+    /// <summary>
+    /// All 22 entity types from <see cref="EntityTypes.Map"/>. Theory-driven so
+    /// a failure in one type's bucket is isolated rather than aborting the rest.
+    /// </summary>
+    public static IEnumerable<object[]> AllTypes() =>
+        EntityTypes.Map.Select(kv => new object[] { kv.Key, kv.Value });
+
+    /// <summary>
+    /// Known JSON / C# drift in ozx_base, tracked upstream. New drift must
+    /// not be silently allowlisted — file a bug against ozx_base instead.
+    /// </summary>
+    private static readonly HashSet<string> KnownDrift = new(StringComparer.Ordinal)
     {
-        new object[] { "enemies",     typeof(EnemyData)      },
-        new object[] { "weapons",     typeof(WeaponData)     },
-        new object[] { "projectiles", typeof(ProjectileData) },
-        new object[] { "skills",      typeof(SkillData)      },
-        new object[] { "items",       typeof(ItemData)       },
+        // OZX-380: BossPhaseData.addSkills declared as SkillBinding[] but JSON
+        // encodes plain strings. Tracked in ozx_base; rewrite when fixed.
+        "bosses/necromancer.json",
     };
 
     [Theory]
-    [MemberData(nameof(P1Types))]
+    [MemberData(nameof(AllTypes))]
     public void Every_file_in_type_bucket_deserialises(string typeId, Type clrType)
     {
         var ozx = ResolveSiblingOzxBase();
@@ -47,28 +56,40 @@ public class EntityJsonValidationTests
         var files = Directory.EnumerateFiles(dir, "*.json", SearchOption.TopDirectoryOnly).ToList();
         Assert.NotEmpty(files);
 
-        var failures = new List<string>();
+        var unexpectedFailures = new List<string>();
+        var expectedFailures = new List<string>();
         foreach (var path in files)
         {
+            var relKey = $"{typeId}/{Path.GetFileName(path)}";
             var json = File.ReadAllText(path);
             try
             {
                 var obj = JsonSerializer.Deserialize(json, clrType, DeserOpts);
-                if (obj is null) failures.Add($"{Path.GetFileName(path)}: deserialised to null");
+                if (obj is null)
+                {
+                    (KnownDrift.Contains(relKey) ? expectedFailures : unexpectedFailures)
+                        .Add($"{Path.GetFileName(path)}: deserialised to null");
+                }
             }
             catch (Exception ex)
             {
-                failures.Add($"{Path.GetFileName(path)}: {ex.GetType().Name}: {ex.Message}");
+                (KnownDrift.Contains(relKey) ? expectedFailures : unexpectedFailures)
+                    .Add($"{Path.GetFileName(path)}: {ex.GetType().Name}: {ex.Message}");
             }
         }
 
-        _out.WriteLine($"{typeId}: deserialised {files.Count - failures.Count}/{files.Count}");
-        if (failures.Count > 0)
+        _out.WriteLine($"{typeId}: deserialised {files.Count - unexpectedFailures.Count - expectedFailures.Count}/{files.Count}");
+        if (expectedFailures.Count > 0)
         {
-            _out.WriteLine("--- failures ---");
-            foreach (var f in failures) _out.WriteLine("  " + f);
+            _out.WriteLine("--- known drift (tracked upstream) ---");
+            foreach (var f in expectedFailures) _out.WriteLine("  " + f);
         }
-        Assert.Empty(failures);
+        if (unexpectedFailures.Count > 0)
+        {
+            _out.WriteLine("--- unexpected failures ---");
+            foreach (var f in unexpectedFailures) _out.WriteLine("  " + f);
+        }
+        Assert.Empty(unexpectedFailures);
     }
 
     private static string? ResolveSiblingOzxBase()

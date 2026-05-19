@@ -1,0 +1,26 @@
+{
+  "id": "basic",
+  "label": "Explosive oil tank",
+  "description": "Destructible that leaks and explodes after a delay. Modeled after oil_tank.",
+  "body": {
+    "dataType": "OilTankData",
+    "id": "",
+    "displayName": "",
+    "hitCount": 5,
+    "spriteKey": "",
+    "deathFxKeys": [],
+    "delayedDeathFxKeys": [],
+    "delayedDeathFxDelay": 0.3,
+    "lootTableId": "",
+    "corpseDecalKey": "",
+    "corpseDecalCategory": "huge",
+    "leakIntervalSeconds": 5.0,
+    "leakIntervalMultiplier": 0.8,
+    "explosionDamage": 5.0,
+    "explosionRadius": 2.5,
+    "explosionKnockback": 2.0,
+    "explosionAffectsPlayer": true,
+    "explosionAffectsEnemies": true,
+    "explosionAffectsStatics": true
+  }
+}
