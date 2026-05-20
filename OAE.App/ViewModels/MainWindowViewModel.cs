@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OAE.Core.Config;
+using OAE.Core.Docs;
 using OAE.Core.Importer;
 using OAE.Core.References;
 using OAE.Core.Resources;
@@ -195,15 +196,40 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _store.Update(SelectedType.Id, SelectedEntity.Id, json);
             IsDirty = false;
-            SaveStatus = $"Saved {SelectedEntity.Id} at {DateTime.Now:HH:mm:ss}";
             // A new id may have been added (or a rename, eventually) — keep the
             // picker dropdowns in sync.
             RebuildReferenceIndex();
+
+            var docSuffix = Config.AutoSyncDocs
+                ? TrySyncDocs(SelectedType.Id, SelectedEntity.Id, CurrentEntity)
+                : string.Empty;
+            SaveStatus = $"Saved {SelectedEntity.Id} at {DateTime.Now:HH:mm:ss}{docSuffix}";
         }
         catch (Exception ex)
         {
             SaveStatus = $"Save failed: {ex.Message}";
         }
+    }
+
+    private string TrySyncDocs(string typeId, string entityId, JsonObject body)
+    {
+        if (string.IsNullOrEmpty(Config.ProjectRoot)) return string.Empty;
+        var docsRoot = Path.Combine(Config.ProjectRoot, "Documents");
+        if (!Directory.Exists(docsRoot)) return string.Empty;
+        try
+        {
+            var writer = new DocSyncWriter();
+            var result = writer.SyncEntity(typeId, entityId, body, docsRoot);
+            return result.Status switch
+            {
+                DocSyncStatus.Updated   => $"  ·  doc: {result.Changes.Count} cell(s) updated",
+                DocSyncStatus.Unchanged => "  ·  doc: no changes",
+                DocSyncStatus.NotFound  => "  ·  doc: not found",
+                DocSyncStatus.NoMapping => string.Empty,
+                _ => string.Empty,
+            };
+        }
+        catch (Exception ex) { return $"  ·  doc sync failed: {ex.Message}"; }
     }
 
     public void Revert() => LoadSelectedEntity();

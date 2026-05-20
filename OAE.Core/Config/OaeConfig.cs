@@ -25,6 +25,15 @@ public sealed class OaeConfig
     public string? ImportAssetSkillPath { get; set; }
 
     /// <summary>
+    /// When <c>true</c>, after every successful entity Save OAE updates the
+    /// matching <c>Documents/&lt;Type&gt;/*.md</c> catalog row(s) via
+    /// <see cref="OAE.Core.Docs.DocSyncWriter"/>. Set <c>false</c> to keep
+    /// docs out of OAE's write path entirely.
+    /// </summary>
+    [JsonPropertyName("auto_sync_docs")]
+    public bool AutoSyncDocs { get; set; } = true;
+
+    /// <summary>
     /// ~/.config/oae/config.json on macOS/Linux. Uses XDG-style placement so it
     /// stays out of ~/Library and is easy to inspect by hand.
     /// </summary>
