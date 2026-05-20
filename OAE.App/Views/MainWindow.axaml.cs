@@ -183,6 +183,13 @@ public partial class MainWindow : Window
         vm.ReloadCurrentEntity();
     }
 
+    private async void OnMinimapClick(object? sender, RoutedEventArgs e)
+    {
+        var window = new MinimapWindow();
+        window.Configure(new OAE.Core.GameApi.GameApiClient());
+        await window.ShowDialog(this);
+    }
+
     private async void OnNewEntityClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm || vm.SelectedType is null) return;
