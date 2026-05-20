@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="using:OAE.App.Views"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        Width="900" Height="600"
+        x:Class="OAE.App.Views.PpuAuditResultsWindow"
+        Title="PPU audit"
+        Background="#181C25"
+        WindowStartupLocation="CenterOwner">
+
+    <DockPanel LastChildFill="True">
+        <Border DockPanel.Dock="Top" Background="#141821" Padding="14,10"
+                BorderBrush="#1F242C" BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock Foreground="#7A8290" FontSize="10" FontWeight="SemiBold" Text="PPU AUDIT"/>
+                <TextBlock Name="StatusText" Foreground="#D8DCE4" FontSize="12.5"/>
+            </StackPanel>
+        </Border>
+
+        <ListBox Name="ResultList" Margin="10" Padding="6,0">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="views:PpuAuditRow">
+                    <Grid ColumnDefinitions="100,60,*" Margin="0,3">
+                        <TextBlock Grid.Column="0" Text="{Binding Severity}"
+                                   FontSize="11" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Ppu}"
+                                   FontFamily="Menlo,Monaco,Consolas" FontSize="11"
+                                   Foreground="#7A8290"/>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="{Binding RelativePath}"
+                                       FontFamily="Menlo,Monaco,Consolas" FontSize="11"
+                                       Foreground="#D8DCE4" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding Reason}" FontSize="10.5"
+                                       Foreground="#7A8290"/>
+                        </StackPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</Window>

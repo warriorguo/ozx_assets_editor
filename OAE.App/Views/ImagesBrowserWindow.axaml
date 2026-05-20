@@ -22,13 +22,28 @@
         </Style>
     </Window.Styles>
 
+    <Window.Resources>
+        <SolidColorBrush x:Key="BadgeOkBg"        Color="#163C2A"/>
+        <SolidColorBrush x:Key="BadgeOkFg"        Color="#9BE3B5"/>
+        <SolidColorBrush x:Key="BadgePreferredBg" Color="#3C3318"/>
+        <SolidColorBrush x:Key="BadgePreferredFg" Color="#E3CC8C"/>
+        <SolidColorBrush x:Key="BadgeStrictBg"    Color="#3C1F22"/>
+        <SolidColorBrush x:Key="BadgeStrictFg"    Color="#E39B9B"/>
+        <SolidColorBrush x:Key="BadgeIgnoredBg"   Color="#1F2530"/>
+        <SolidColorBrush x:Key="BadgeIgnoredFg"   Color="#7A8290"/>
+    </Window.Resources>
+
     <DockPanel LastChildFill="True">
         <Border DockPanel.Dock="Top" Background="#141821" Padding="14,10"
                 BorderBrush="#1F242C" BorderThickness="0,0,0,1">
-            <StackPanel>
-                <TextBlock Classes="label" Text="IMAGES"/>
-                <TextBlock Name="StatusText" Foreground="#D8DCE4" FontSize="12.5"/>
-            </StackPanel>
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0">
+                    <TextBlock Classes="label" Text="IMAGES"/>
+                    <TextBlock Name="StatusText" Foreground="#D8DCE4" FontSize="12.5"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Scan PPUs…" Click="OnScanPpusClick"
+                        Padding="14,6"/>
+            </Grid>
         </Border>
 
         <Grid ColumnDefinitions="260,260,*">
@@ -74,9 +89,13 @@
                                    Foreground="#D8DCE4"/>
                         <TextBlock Name="PreviewDims" FontSize="11" Foreground="#7A8290"/>
                         <TextBlock Name="PreviewSlice" FontSize="11" Foreground="#7A8290"/>
+                        <Border Name="PpuBadge" CornerRadius="4" Padding="8,3"
+                                HorizontalAlignment="Left" Margin="0,4,0,0" IsVisible="False">
+                            <TextBlock Name="PpuBadgeText" FontSize="11"/>
+                        </Border>
                         <TextBlock Name="PreviewPath"
                                    FontFamily="Menlo,Monaco,Consolas" FontSize="10.5"
-                                   Foreground="#5C6573" TextWrapping="Wrap"/>
+                                   Foreground="#5C6573" TextWrapping="Wrap" Margin="0,6,0,0"/>
                     </StackPanel>
                     <Border Background="#0F1115" CornerRadius="4" Margin="0,12,0,0">
                         <Image Name="PreviewImage" Stretch="Uniform" Margin="6"/>
