@@ -134,7 +134,11 @@ public class FsStoreTests
         var store = new FsStore(Path.Combine(ozx, "Assets", "StreamingAssets", "GameData"));
         var n = store.TotalEntityCount();
         _out.WriteLine($"counted {n} entities");
-        Assert.True(n > 180, $"expected >180 entities in ozx_base; got {n}");
+        // Lower bound — content churn in ozx_base (OZX-388/389/390/391 removed
+        // multiple files) means an exact count would re-fail on every upstream
+        // edit. The test exists to catch missing buckets or a load-path
+        // regression, not to track exact population.
+        Assert.True(n > 150, $"expected >150 entities in ozx_base; got {n}");
     }
 
     private static string? ResolveSiblingOzxBase()

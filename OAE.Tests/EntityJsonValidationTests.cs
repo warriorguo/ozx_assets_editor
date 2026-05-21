@@ -36,9 +36,7 @@ public class EntityJsonValidationTests
     /// </summary>
     private static readonly HashSet<string> KnownDrift = new(StringComparer.Ordinal)
     {
-        // OZX-380: BossPhaseData.addSkills declared as SkillBinding[] but JSON
-        // encodes plain strings. Tracked in ozx_base; rewrite when fixed.
-        "bosses/necromancer.json",
+        // (none currently — OZX-389 removed necromancer.json, the previous drift case)
     };
 
     [Theory]
@@ -54,7 +52,10 @@ public class EntityJsonValidationTests
         var dir = Path.Combine(ozx, "Assets", "StreamingAssets", "GameData", typeId);
         Assert.True(Directory.Exists(dir), $"missing dir: {dir}");
         var files = Directory.EnumerateFiles(dir, "*.json", SearchOption.TopDirectoryOnly).ToList();
-        Assert.NotEmpty(files);
+        // An empty bucket is legitimate upstream state (e.g. all bosses removed
+        // in OZX-389). Skip with a log line — the test is about JSON we *have*
+        // failing to deserialize, not about bucket population.
+        if (files.Count == 0) { _out.WriteLine($"{typeId}: bucket is empty — skipped."); return; }
 
         var unexpectedFailures = new List<string>();
         var expectedFailures = new List<string>();
