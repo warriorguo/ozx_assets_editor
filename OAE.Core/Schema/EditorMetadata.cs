@@ -96,6 +96,12 @@ public static class EditorMetadata
         // ── player ─────────────────────────────────────────────────────────
         [(typeof(PlayerData), "headId")]                        = new(RefTarget: "heads"),
         [(typeof(PlayerData), "startingSkills[].skillId")]      = new(RefTarget: "skills"),
+        // OZX-377: linear-ramp movement feel. Sit next to moveSpeed in
+        // PlayerStats declaration order, so they render as a movement-feel group.
+        [(typeof(PlayerData), "stats.acceleration")] = new(
+            Description: "units/sec² ramp toward target velocity (input × moveSpeed). Higher = snappier startup and direction reversal."),
+        [(typeof(PlayerData), "stats.deceleration")] = new(
+            Description: "units/sec² ramp toward zero when input is released. Higher = crisper stop."),
 
         // OAE-7/OAE-9 field-level audit notes:
         //   - WeaponData.lightningId, fireSoundId, spriteKeys[] — no matching

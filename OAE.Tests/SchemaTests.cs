@@ -117,6 +117,52 @@ public class SchemaTests
     }
 
     [Fact]
+    public void PlayerStats_exposes_acceleration_and_deceleration_as_floats_adjacent_to_moveSpeed()
+    {
+        // OAE-19: surfacing the OZX-377 movement-feel fields. The editor relies
+        // on PlayerStats declaration order to group them with moveSpeed — lock
+        // that in so a reorder upstream doesn't silently scatter the form.
+        var schema = SchemaBuilder.For<PlayerData>();
+        var stats = schema.Fields.First(f => f.Name == "stats");
+        Assert.NotNull(stats.Nested);
+
+        var names = stats.Nested!.Fields.Select(f => f.Name).ToList();
+        var moveSpeedIdx = names.IndexOf("moveSpeed");
+        Assert.True(moveSpeedIdx >= 0, "PlayerStats must have moveSpeed");
+        Assert.Equal("acceleration", names[moveSpeedIdx + 1]);
+        Assert.Equal("deceleration", names[moveSpeedIdx + 2]);
+
+        var byName = stats.Nested!.Fields.ToDictionary(f => f.Name);
+        Assert.Equal(FieldKind.Float, byName["acceleration"].Kind);
+        Assert.Equal(FieldKind.Float, byName["deceleration"].Kind);
+    }
+
+    [Fact]
+    public void EditorMetadata_describes_acceleration_and_deceleration()
+    {
+        var accel = EditorMetadata.For(typeof(PlayerData), "stats.acceleration");
+        Assert.NotNull(accel);
+        Assert.False(string.IsNullOrWhiteSpace(accel!.Description));
+
+        var decel = EditorMetadata.For(typeof(PlayerData), "stats.deceleration");
+        Assert.NotNull(decel);
+        Assert.False(string.IsNullOrWhiteSpace(decel!.Description));
+    }
+
+    [Fact]
+    public void Player_basic_template_carries_acceleration_and_deceleration_defaults()
+    {
+        var t = TemplateLoader.Get("player", "basic");
+        Assert.NotNull(t);
+        var body = JsonNode.Parse(t!.Body)!.AsObject();
+        var stats = body["stats"]!.AsObject();
+        Assert.True(stats.ContainsKey("acceleration"), "player template must seed acceleration");
+        Assert.True(stats.ContainsKey("deceleration"), "player template must seed deceleration");
+        Assert.True(stats["acceleration"]!.GetValue<float>() > 0);
+        Assert.True(stats["deceleration"]!.GetValue<float>() > 0);
+    }
+
+    [Fact]
     public void SchemaBuilder_attaches_meta_to_top_level_field()
     {
         var schema = SchemaBuilder.For<EnemyData>();
