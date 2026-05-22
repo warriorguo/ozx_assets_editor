@@ -1,0 +1,143 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="using:OAE.App.Views"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="760"
+        Width="1200" Height="760"
+        x:Class="OAE.App.Views.TilemapBrowserWindow"
+        Title="Tilemaps"
+        Background="#181C25"
+        WindowStartupLocation="CenterOwner">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#7A8290"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Border.pane">
+            <Setter Property="BorderBrush" Value="#1F242C"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+        </Style>
+        <Style Selector="TextBlock.detailKey">
+            <Setter Property="Foreground" Value="#7A8290"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+        <Style Selector="TextBlock.detailVal">
+            <Setter Property="Foreground" Value="#D8DCE4"/>
+            <Setter Property="FontFamily" Value="Menlo,Monaco,Consolas"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel LastChildFill="True">
+        <Border DockPanel.Dock="Top" Background="#141821" Padding="14,10"
+                BorderBrush="#1F242C" BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock Classes="label" Text="TILEMAPS"/>
+                <TextBlock Name="StatusText" Foreground="#D8DCE4" FontSize="12.5"
+                           Text="(no tilemaps loaded)"/>
+            </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="200,320,*">
+            <!-- LEFT: theme tree -->
+            <Border Grid.Column="0" Classes="pane" Background="#0F1115" Padding="0,10">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Classes="label" Text="THEMES" Margin="12,0,12,6"/>
+                    <ListBox Name="ThemeList" Padding="6,0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="views:TilemapThemeRow">
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                               FontFamily="Menlo,Monaco,Consolas" FontSize="12.5"/>
+                                    <Border Grid.Column="1" Background="#1F2530" CornerRadius="10"
+                                            Padding="7,1" Margin="6,0,0,0">
+                                        <TextBlock Text="{Binding Count}" Foreground="#A3ADBA" FontSize="11"/>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- MIDDLE: filters + file list -->
+            <Border Grid.Column="1" Classes="pane" Background="#13171F" Padding="0,10">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Classes="label" Text="FILTERS" Margin="12,0,12,6"/>
+                    <Grid DockPanel.Dock="Top" Margin="10,0,10,4" ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                        <ComboBox Grid.Row="0" Grid.Column="0" Name="ShapeFilter" Margin="0,0,4,4"
+                                  HorizontalAlignment="Stretch"/>
+                        <ComboBox Grid.Row="0" Grid.Column="1" Name="CategoryFilter" Margin="4,0,0,4"
+                                  HorizontalAlignment="Stretch"/>
+                        <ComboBox Grid.Row="1" Grid.Column="0" Name="StageFilter" Margin="0,0,4,0"
+                                  HorizontalAlignment="Stretch"/>
+                        <ComboBox Grid.Row="1" Grid.Column="1" Name="DoorsFilter" Margin="4,0,0,0"
+                                  HorizontalAlignment="Stretch"/>
+                    </Grid>
+                    <TextBox DockPanel.Dock="Top" Name="NameFilter"
+                             Margin="10,6,10,8" PlaceholderText="Filter by name…" FontSize="12"/>
+                    <TextBlock DockPanel.Dock="Top" Name="ResultCount" Classes="label"
+                               Text="" Margin="12,0,12,6"/>
+                    <ListBox Name="FileList" Padding="6,0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="views:TilemapRow">
+                                <StackPanel Margin="0,2">
+                                    <TextBlock Text="{Binding Stem}"
+                                               FontFamily="Menlo,Monaco,Consolas" FontSize="12.5"/>
+                                    <TextBlock Text="{Binding Summary}" FontSize="10.5"
+                                               Foreground="#5C6573"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- RIGHT: preview + detail + actions -->
+            <Border Grid.Column="2" Background="#181C25" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <!-- Action row -->
+                    <Border DockPanel.Dock="Top" Padding="16,10" Background="#141821"
+                            BorderBrush="#1F242C" BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="*,Auto,Auto">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Name="PreviewName"
+                                           FontFamily="Menlo,Monaco,Consolas" FontSize="13"
+                                           Foreground="#D8DCE4"
+                                           Text="(select a tilemap)"/>
+                                <TextBlock Name="PreviewKey" FontSize="10.5"
+                                           Foreground="#7A8290"
+                                           FontFamily="Menlo,Monaco,Consolas"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Reveal in Finder" Click="OnRevealClick"
+                                    Padding="12,6" Margin="0,0,6,0"
+                                    IsEnabled="{Binding ElementName=FileList, Path=SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                            <Button Grid.Column="2" Content="Copy ORT key" Click="OnCopyKeyClick"
+                                    Padding="12,6"
+                                    Background="#2C6BE6" Foreground="White"
+                                    IsEnabled="{Binding ElementName=FileList, Path=SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        </Grid>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*,300">
+                        <!-- Preview canvas -->
+                        <Border Grid.Column="0" Background="#0F1115" Padding="16">
+                            <Image Name="PreviewImage" Stretch="Uniform"
+                                   RenderOptions.BitmapInterpolationMode="None"/>
+                        </Border>
+                        <!-- Detail panel -->
+                        <Border Grid.Column="1" Background="#181C25" Padding="16,14"
+                                BorderBrush="#1F242C" BorderThickness="1,0,0,0">
+                            <ScrollViewer>
+                                <StackPanel Name="DetailHost" Spacing="10"/>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>

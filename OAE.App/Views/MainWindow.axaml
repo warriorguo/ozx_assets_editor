@@ -64,7 +64,7 @@
         <!-- Top toolbar: project root + status + open button -->
         <Border DockPanel.Dock="Top" Padding="16,12" Background="#141821"
                 BorderBrush="#1F242C" BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto" VerticalAlignment="Center">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto" VerticalAlignment="Center">
                 <StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,16,0">
                     <TextBlock Classes="section" Text="PROJECT ROOT"/>
                     <TextBlock Text="{Binding ProjectRootDisplay}"
@@ -91,9 +91,12 @@
                 <Button Grid.Column="5" Content="Sounds…" Click="OnSoundsClick"
                         Padding="14,8" Margin="0,0,6,0" VerticalAlignment="Center"
                         IsEnabled="{Binding IsProjectValid}"/>
-                <Button Grid.Column="6" Content="Minimap…" Click="OnMinimapClick"
+                <Button Grid.Column="6" Content="Tilemaps…" Click="OnTilemapsClick"
+                        Padding="14,8" Margin="0,0,6,0" VerticalAlignment="Center"
+                        IsEnabled="{Binding IsProjectValid}"/>
+                <Button Grid.Column="7" Content="Minimap…" Click="OnMinimapClick"
                         Padding="14,8" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                <Button Grid.Column="7" Content="Open Project…" Click="OnOpenProjectClick"
+                <Button Grid.Column="8" Content="Open Project…" Click="OnOpenProjectClick"
                         Padding="14,8" VerticalAlignment="Center"/>
             </Grid>
         </Border>

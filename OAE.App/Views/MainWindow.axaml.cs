@@ -183,6 +183,16 @@ public partial class MainWindow : Window
         vm.ReloadCurrentEntity();
     }
 
+    private async void OnTilemapsClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        var projectRoot = vm.Config.ProjectRoot;
+        if (string.IsNullOrEmpty(projectRoot)) return;
+        var window = new TilemapBrowserWindow();
+        window.Configure(projectRoot);
+        await window.ShowDialog(this);
+    }
+
     private async void OnMinimapClick(object? sender, RoutedEventArgs e)
     {
         var window = new MinimapWindow();

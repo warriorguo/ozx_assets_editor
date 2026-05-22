@@ -12,6 +12,9 @@
     <!-- Avalonia ships managed-only NuGets that load native deps; keep them
          embedded inside the single-file binary so a clean Mac runs it. -->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- TilemapPreviewRenderer writes directly into a locked WriteableBitmap
+         framebuffer for the 12×20-tile preview. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
