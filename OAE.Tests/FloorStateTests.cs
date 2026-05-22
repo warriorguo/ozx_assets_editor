@@ -61,6 +61,28 @@ public class FloorStateTests
           "Doors": [],
           "Enemies": [],
           "Lootables": []
+        },
+        {
+          "RoomId": "r_cave_01",
+          "StageType": "normal",
+          "Category": "cave",
+          "Shape": null,
+          "BossId": null,
+          "Cleared": false,
+          "Visited": false,
+          "HasTeleportSpot": false,
+          "HasLayout": true,
+          "GridX": 1,
+          "GridY": -1,
+          "Cols": 1,
+          "Rows": 1,
+          "IsSubRoom": true,
+          "ParentRoomId": "r_start",
+          "SpawnPlanId": null,
+          "LootPlanId": null,
+          "Doors": [],
+          "Enemies": [],
+          "Lootables": []
         }
       ]
     }
@@ -78,7 +100,7 @@ public class FloorStateTests
         Assert.Equal("r_start", state.StartRoomId);
         Assert.Equal("r_boss", state.BossRoomId);
         Assert.Equal("r_start", state.CurrentRoomId);
-        Assert.Equal(2, state.Rooms.Count);
+        Assert.Equal(3, state.Rooms.Count);
 
         var start = state.Rooms[0];
         Assert.Equal("r_start", start.RoomId);
@@ -103,6 +125,32 @@ public class FloorStateTests
         Assert.True(boss.HasTeleportSpot);
         Assert.Equal(2, boss.Cols);
         Assert.Equal(2, boss.Rows);
+        Assert.False(boss.IsSubRoom);
+        Assert.Null(boss.ParentRoomId);
+
+        // OZX-386: cave room is a sub-room anchored at parent+1 down-and-right.
+        var cave = state.Rooms[2];
+        Assert.Equal("r_cave_01", cave.RoomId);
+        Assert.True(cave.IsSubRoom);
+        Assert.Equal("r_start", cave.ParentRoomId);
+        Assert.True(cave.HasLayout);
+        Assert.Equal("cave", cave.Category);
+    }
+
+    [Fact]
+    public void Deserialize_defaults_IsSubRoom_and_ParentRoomId_for_main_floor_rooms()
+    {
+        // Main-floor rooms in the response shape don't carry the sub-room
+        // fields; defaults should be false / null.
+        const string json = """
+        { "Rooms": [ { "RoomId": "r_main", "HasLayout": true } ] }
+        """;
+        var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var state = JsonSerializer.Deserialize<FloorState>(json, opts);
+        Assert.NotNull(state);
+        Assert.Single(state!.Rooms);
+        Assert.False(state.Rooms[0].IsSubRoom);
+        Assert.Null(state.Rooms[0].ParentRoomId);
     }
 
     [Fact]

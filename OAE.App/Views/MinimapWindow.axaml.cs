@@ -86,11 +86,13 @@ public partial class MinimapWindow : Window
         var rooms = _floor.Rooms.Where(r => r.HasLayout).ToList();
 
         var withoutLayout = _floor.Rooms.Count - rooms.Count;
+        var subCount = rooms.Count(r => r.IsSubRoom);
         var theme = string.IsNullOrEmpty(_floor.ThemeId) ? "—" : _floor.ThemeId;
         var current = string.IsNullOrEmpty(_floor.CurrentRoomId) ? "—" : _floor.CurrentRoomId;
         var skipped = withoutLayout > 0 ? $" · {withoutLayout} room(s) without layout (hidden)" : "";
+        var subs = subCount > 0 ? $" · {subCount} satellite(s)" : "";
         _statusText.Text =
-            $"Floor {_floor.FloorIndex} · theme {theme} · current {current} · {rooms.Count} rooms{skipped}";
+            $"Floor {_floor.FloorIndex} · theme {theme} · current {current} · {rooms.Count} rooms{subs}{skipped}";
 
         if (rooms.Count == 0)
         {
@@ -111,10 +113,13 @@ public partial class MinimapWindow : Window
         _mapCanvas.Width = CanvasPad * 2 + cols * CellSize;
         _mapCanvas.Height = CanvasPad * 2 + rowsCount * CellSize;
 
+        // Compute (x, y, w, h) per room first so tethers can target parent centers
+        // before we lay down cell borders on top.
+        var layout = new Dictionary<string, (double X, double Y, double W, double H)>();
         foreach (var room in rooms)
         {
+            if (string.IsNullOrEmpty(room.RoomId)) continue;
             var cellX = room.GridX - minX;
-            // Flip Y so "up in game" renders "up on screen".
             var cellY = maxY - (room.GridY + Math.Max(1, room.Rows) - 1);
             var widthCells = Math.Max(1, room.Cols);
             var heightCells = Math.Max(1, room.Rows);
@@ -123,6 +128,39 @@ public partial class MinimapWindow : Window
             var y = CanvasPad + cellY * CellSize + CellGap / 2;
             var w = widthCells * CellSize - CellGap;
             var h = heightCells * CellSize - CellGap;
+
+            // Satellites render slightly inset so they read as attached, not as
+            // first-class floor rooms.
+            if (room.IsSubRoom)
+            {
+                const double inset = 8;
+                x += inset; y += inset; w -= inset * 2; h -= inset * 2;
+            }
+            layout[room.RoomId!] = (x, y, w, h);
+        }
+
+        // Pass 1: tethers (drawn first so cells paint on top of the line ends).
+        foreach (var room in rooms)
+        {
+            if (!room.IsSubRoom || string.IsNullOrEmpty(room.ParentRoomId)) continue;
+            if (string.IsNullOrEmpty(room.RoomId)) continue;
+            if (!layout.TryGetValue(room.RoomId!, out var sub)) continue;
+            if (!layout.TryGetValue(room.ParentRoomId!, out var par)) continue;
+            var line = new Avalonia.Controls.Shapes.Line
+            {
+                StartPoint = new Point(sub.X + sub.W / 2, sub.Y + sub.H / 2),
+                EndPoint = new Point(par.X + par.W / 2, par.Y + par.H / 2),
+                Stroke = new SolidColorBrush(Color.FromRgb(0x7A, 0x82, 0x90)) { Opacity = 0.55 },
+                StrokeThickness = 1,
+                StrokeDashArray = new global::Avalonia.Collections.AvaloniaList<double> { 3, 3 },
+            };
+            _mapCanvas.Children.Add(line);
+        }
+
+        foreach (var room in rooms)
+        {
+            if (string.IsNullOrEmpty(room.RoomId) || !layout.TryGetValue(room.RoomId!, out var box)) continue;
+            var (x, y, w, h) = box;
 
             var (fill, stroke) = ColorsFor(room);
             var isCurrent = !string.IsNullOrEmpty(room.RoomId) && room.RoomId == _floor.CurrentRoomId;
@@ -133,11 +171,12 @@ public partial class MinimapWindow : Window
                 Height = h,
                 Background = fill,
                 BorderBrush = isCurrent ? new SolidColorBrush(Color.FromRgb(0xFF, 0xC8, 0x3D)) : stroke,
-                BorderThickness = new Thickness(isCurrent ? 2.5 : 1.5),
-                CornerRadius = new CornerRadius(4),
+                BorderThickness = new Thickness(isCurrent ? 2.5 : (room.IsSubRoom ? 1.0 : 1.5)),
+                CornerRadius = new CornerRadius(room.IsSubRoom ? 8 : 4),
                 Cursor = new global::Avalonia.Input.Cursor(global::Avalonia.Input.StandardCursorType.Hand),
                 Padding = new Thickness(6),
                 Tag = room.RoomId,
+                Opacity = room.IsSubRoom ? 0.88 : 1.0,
             };
             ToolTip.SetTip(cell, BuildTooltip(room));
 
@@ -288,6 +327,8 @@ public partial class MinimapWindow : Window
         if (!string.IsNullOrEmpty(room.StageType)) parts.Add($"stage={room.StageType}");
         if (!string.IsNullOrEmpty(room.Category)) parts.Add($"cat={room.Category}");
         if (!string.IsNullOrEmpty(room.Shape)) parts.Add($"shape={room.Shape}");
+        if (room.IsSubRoom && !string.IsNullOrEmpty(room.ParentRoomId))
+            parts.Add($"satellite of {room.ParentRoomId}");
         if (room.Cleared) parts.Add("cleared");
         if (room.Visited) parts.Add("visited");
         return string.Join(" · ", parts);
@@ -366,6 +407,8 @@ public partial class MinimapWindow : Window
             rowIdx++;
         }
 
+        if (room.IsSubRoom && !string.IsNullOrEmpty(room.ParentRoomId))
+            AddRow("Parent", room.ParentRoomId!);
         AddRow("Stage", room.StageType ?? "—");
         AddRow("Category", room.Category ?? "—");
         if (!string.IsNullOrEmpty(room.Shape)) AddRow("Shape", room.Shape!);

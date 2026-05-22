@@ -33,6 +33,12 @@ public sealed class FloorRoomState
     public int Rows { get; set; }
     public string? SpawnPlanId { get; set; }
     public string? LootPlanId { get; set; }
+    // OZX-386: cave/basement rooms are anchored to a parent room (the one you
+    // enter them from) so they get a grid position even though they're not on
+    // the door graph. Sub-rooms sit one cell down-and-right of the parent;
+    // siblings on the same parent get bumped along +X.
+    public bool IsSubRoom { get; set; }
+    public string? ParentRoomId { get; set; }
     public List<FloorDoorState> Doors { get; set; } = new();
     public List<FloorEnemyEntry> Enemies { get; set; } = new();
     public List<FloorLootEntry> Lootables { get; set; } = new();
