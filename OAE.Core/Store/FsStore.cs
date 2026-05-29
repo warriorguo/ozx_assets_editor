@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using OAE.Core.Schema;
 
@@ -6,7 +7,8 @@ namespace OAE.Core.Store;
 /// <summary>
 /// File-backed <see cref="IStore"/> mounted on
 /// <c>&lt;project_root&gt;/Assets/StreamingAssets/GameData/</c>. Each entity
-/// type maps to a subdirectory; entity ids match the file basename.
+/// type maps to a subdirectory (possibly shared with other entity types,
+/// see <see cref="EntityTypes.Subdirs"/>); entity ids match the file basename.
 /// Reads return raw UTF-8 bytes and writes pass through verbatim, so the
 /// store does not perturb on-disk formatting (key order, indent, trailing
 /// newline) — that lets git diffs stay clean and sidesteps Unity-JsonUtility
@@ -16,12 +18,12 @@ public sealed class FsStore : IStore
 {
     /// <summary>
     /// Maps the OAE-facing entity type id to the on-disk subdirectory under
-    /// <c>GameData/</c>. By convention type id == subdir name, derived from
-    /// <see cref="EntityTypes.Map"/> so the schema and storage layouts can
-    /// never disagree.
+    /// <c>GameData/</c>. Derived from <see cref="EntityTypes.Map"/> via
+    /// <see cref="EntityTypes.SubdirOf"/>; defaults to type id == subdir name,
+    /// with overrides (OAE-32) for shared subdirs.
     /// </summary>
     public static readonly IReadOnlyDictionary<string, string> Types =
-        EntityTypes.Map.Keys.ToDictionary(k => k, k => k);
+        EntityTypes.Map.Keys.ToDictionary(k => k, EntityTypes.SubdirOf);
 
     private static readonly Regex IdPattern = new("^[a-z0-9_]+$", RegexOptions.Compiled);
 
@@ -52,9 +54,12 @@ public sealed class FsStore : IStore
         var dir = ResolveSubdir(entityType);
         if (!Directory.Exists(dir)) return Array.Empty<EntityDescriptor>();
         var files = Directory.EnumerateFiles(dir, "*.json", SearchOption.TopDirectoryOnly);
+        var shared = EntityTypes.IsSharedSubdir(entityType);
+        var expectedDataType = shared ? EntityTypes.DataTypeOf(entityType) : null;
         var list = new List<EntityDescriptor>();
         foreach (var f in files)
         {
+            if (shared && PeekDataType(f) != expectedDataType) continue;
             var id = Path.GetFileNameWithoutExtension(f);
             list.Add(new EntityDescriptor(entityType, id, Path.GetRelativePath(_projectRoot, f)));
         }
@@ -66,6 +71,11 @@ public sealed class FsStore : IStore
     {
         var path = ResolveFile(entityType, id);
         if (!File.Exists(path)) throw new EntityNotFoundException(entityType, id);
+        // On a shared subdir, the filename alone does not disambiguate which
+        // entity type the file belongs to — validate via dataType (OAE-32).
+        if (EntityTypes.IsSharedSubdir(entityType)
+            && PeekDataType(path) != EntityTypes.DataTypeOf(entityType))
+            throw new EntityNotFoundException(entityType, id);
         return File.ReadAllText(path);
     }
 
@@ -105,18 +115,44 @@ public sealed class FsStore : IStore
     }
 
     /// <summary>
-    /// Total count across every known type. Used by the status banner.
+    /// Total count across every known type. Used by the status banner. Subdirs
+    /// shared across entity types (OAE-32) are counted once via deduplication.
     /// </summary>
     public int TotalEntityCount()
     {
         var total = 0;
+        var seen = new HashSet<string>();
         foreach (var t in Types.Keys)
         {
             var dir = ResolveSubdir(t);
+            if (!seen.Add(dir)) continue;
             if (Directory.Exists(dir))
                 total += Directory.EnumerateFiles(dir, "*.json", SearchOption.TopDirectoryOnly).Count();
         }
         return total;
+    }
+
+    /// <summary>
+    /// OAE-32: peeks the <c>dataType</c> field from a JSON file without fully
+    /// parsing it. Returns null when the field is absent or the file cannot be
+    /// parsed — callers should treat null as "does not match" so unrelated
+    /// files in a shared subdir are simply skipped.
+    /// </summary>
+    private static string? PeekDataType(string filePath)
+    {
+        try
+        {
+            using var stream = File.OpenRead(filePath);
+            using var doc = JsonDocument.Parse(stream);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return null;
+            return doc.RootElement.TryGetProperty("dataType", out var dt) && dt.ValueKind == JsonValueKind.String
+                ? dt.GetString()
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private string ResolveSubdir(string entityType)

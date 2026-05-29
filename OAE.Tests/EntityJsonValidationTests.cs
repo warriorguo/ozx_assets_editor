@@ -23,6 +23,23 @@ public class EntityJsonValidationTests
         AllowTrailingCommas = true,
     };
 
+    // OAE-32: extract the dataType discriminator from a JSON file without a
+    // full deserialise. Used to filter shared-subdir buckets (e.g. levels/
+    // holding both LevelData and LevelBasePlanData).
+    private static string? PeekDataType(string filePath)
+    {
+        try
+        {
+            using var stream = File.OpenRead(filePath);
+            using var doc = JsonDocument.Parse(stream);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return null;
+            return doc.RootElement.TryGetProperty("dataType", out var dt) && dt.ValueKind == JsonValueKind.String
+                ? dt.GetString()
+                : null;
+        }
+        catch { return null; }
+    }
+
     /// <summary>
     /// All 22 entity types from <see cref="EntityTypes.Map"/>. Theory-driven so
     /// a failure in one type's bucket is isolated rather than aborting the rest.
@@ -49,9 +66,17 @@ public class EntityJsonValidationTests
         // Sanity-check our own map agrees with the type passed in.
         Assert.Equal(clrType, EntityTypes.Map[typeId]);
 
-        var dir = Path.Combine(ozx, "Assets", "StreamingAssets", "GameData", typeId);
+        // OAE-32: resolve the on-disk subdir via SubdirOf — entity types can
+        // share a directory (e.g. levels + level_plans both live under levels/).
+        var dir = Path.Combine(ozx, "Assets", "StreamingAssets", "GameData", EntityTypes.SubdirOf(typeId));
         Assert.True(Directory.Exists(dir), $"missing dir: {dir}");
-        var files = Directory.EnumerateFiles(dir, "*.json", SearchOption.TopDirectoryOnly).ToList();
+        var allFiles = Directory.EnumerateFiles(dir, "*.json", SearchOption.TopDirectoryOnly);
+        // On a shared subdir, filter to only the files whose dataType matches
+        // the entity type under test (otherwise we'd try to deserialise a
+        // LevelBasePlanData file as LevelData and fail spuriously).
+        var files = EntityTypes.IsSharedSubdir(typeId)
+            ? allFiles.Where(p => PeekDataType(p) == EntityTypes.DataTypeOf(typeId)).ToList()
+            : allFiles.ToList();
         // An empty bucket is legitimate upstream state (e.g. all bosses removed
         // in OZX-389). Skip with a log line — the test is about JSON we *have*
         // failing to deserialize, not about bucket population.

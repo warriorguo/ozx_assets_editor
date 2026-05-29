@@ -80,6 +80,73 @@ public class FsStoreTests
         Assert.Throws<ArgumentException>(() => store.Create("items", badId, "{}"));
     }
 
+    // ── OAE-32: shared-subdir behaviour (levels ↔ level_plans) ──────────
+
+    [Fact]
+    public void List_in_shared_subdir_filters_by_dataType()
+    {
+        // GameData/levels/ holds both LevelData and LevelBasePlanData post-OZX-443.
+        // List("levels") must surface only LevelData files; List("level_plans")
+        // must surface only LevelBasePlanData files.
+        using var sandbox = NewSandbox();
+        var dir = Path.Combine(sandbox.GameData, "levels");
+        File.WriteAllText(Path.Combine(dir, "static_a.json"),  "{ \"dataType\": \"LevelData\", \"id\": \"static_a\" }");
+        File.WriteAllText(Path.Combine(dir, "static_b.json"),  "{ \"dataType\": \"LevelData\", \"id\": \"static_b\" }");
+        File.WriteAllText(Path.Combine(dir, "plan_a.json"),    "{ \"dataType\": \"LevelBasePlanData\", \"id\": \"plan_a\" }");
+        File.WriteAllText(Path.Combine(dir, "plan_b.json"),    "{ \"dataType\": \"LevelBasePlanData\", \"id\": \"plan_b\" }");
+
+        var store = new FsStore(sandbox.GameData);
+
+        Assert.Equal(new[] { "static_a", "static_b" },
+            store.List("levels").Select(e => e.Id));
+        Assert.Equal(new[] { "plan_a", "plan_b" },
+            store.List("level_plans").Select(e => e.Id));
+    }
+
+    [Fact]
+    public void Get_in_shared_subdir_rejects_wrong_dataType()
+    {
+        // Asking for a LevelData file under entityType "level_plans" must fail
+        // with EntityNotFoundException even though the filename exists.
+        using var sandbox = NewSandbox();
+        var dir = Path.Combine(sandbox.GameData, "levels");
+        File.WriteAllText(Path.Combine(dir, "static_a.json"),
+            "{ \"dataType\": \"LevelData\", \"id\": \"static_a\" }");
+
+        var store = new FsStore(sandbox.GameData);
+
+        Assert.Equal("static_a", store.List("levels").Single().Id);
+        Assert.Throws<EntityNotFoundException>(() => store.Get("level_plans", "static_a"));
+    }
+
+    [Fact]
+    public void TotalEntityCount_dedupes_shared_subdirs()
+    {
+        // Without dedup, a file in levels/ would be counted twice (once per
+        // entityType key mapping to that subdir).
+        using var sandbox = NewSandbox();
+        var dir = Path.Combine(sandbox.GameData, "levels");
+        File.WriteAllText(Path.Combine(dir, "static_a.json"),
+            "{ \"dataType\": \"LevelData\", \"id\": \"static_a\" }");
+        File.WriteAllText(Path.Combine(dir, "plan_a.json"),
+            "{ \"dataType\": \"LevelBasePlanData\", \"id\": \"plan_a\" }");
+
+        var store = new FsStore(sandbox.GameData);
+
+        Assert.Equal(2, store.TotalEntityCount());
+    }
+
+    [Fact]
+    public void Subdirs_override_resolves_level_plans_to_levels()
+    {
+        // Sanity check the OAE-32 override registration itself.
+        Assert.Equal("levels", OAE.Core.Schema.EntityTypes.SubdirOf("level_plans"));
+        Assert.Equal("levels", OAE.Core.Schema.EntityTypes.SubdirOf("levels"));
+        Assert.True(OAE.Core.Schema.EntityTypes.IsSharedSubdir("levels"));
+        Assert.True(OAE.Core.Schema.EntityTypes.IsSharedSubdir("level_plans"));
+        Assert.False(OAE.Core.Schema.EntityTypes.IsSharedSubdir("enemies"));
+    }
+
     [Fact]
     public void Unknown_type_throws()
     {
