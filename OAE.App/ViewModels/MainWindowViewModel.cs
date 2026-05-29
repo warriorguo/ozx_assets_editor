@@ -121,8 +121,24 @@ public partial class MainWindowViewModel : ViewModelBase
     public SchemaModel? CurrentSchema { get; private set; }
     public JsonObject? CurrentEntity { get; private set; }
     [ObservableProperty] private string _rawJson = string.Empty;
-    [ObservableProperty] private bool _isDirty;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSave))]
+    private bool _isDirty;
     [ObservableProperty] private string _saveStatus = string.Empty;
+    // Empty = JSON is valid (or no entity loaded). Set when the Raw JSON tab
+    // can't be parsed; surfaced in the view and used to gate Save.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSave))]
+    private string _rawJsonError = string.Empty;
+
+    /// <summary>True when there are unsaved changes AND the Raw JSON tab parses cleanly.</summary>
+    public bool CanSave => IsDirty && string.IsNullOrEmpty(RawJsonError);
+
+    // Re-entrancy guard: when the form mutates CurrentEntity and we
+    // re-serialise the JSON for the Raw tab, the resulting setter call must
+    // not parse-and-replace CurrentEntity (would invalidate every form
+    // binding's JsonObject reference). Same when loading or clearing.
+    private bool _suppressJsonParse;
 
     /// <summary>Raised when <see cref="CurrentEntity"/> is replaced (entity selected, reverted, etc).</summary>
     public event Action? EntityFormChanged;
@@ -131,8 +147,50 @@ public partial class MainWindowViewModel : ViewModelBase
     public void NotifyFormMutated()
     {
         IsDirty = true;
-        if (CurrentEntity is not null)
+        if (CurrentEntity is null) return;
+        _suppressJsonParse = true;
+        try
+        {
             RawJson = CurrentEntity.ToJsonString(SaveJsonOpts);
+            RawJsonError = string.Empty;
+        }
+        finally { _suppressJsonParse = false; }
+    }
+
+    /// <summary>
+    /// Called when the user edits the Raw JSON tab. Parses on every change;
+    /// on success swaps <see cref="CurrentEntity"/> and rebuilds the form, on
+    /// failure records the parser message and leaves CurrentEntity alone.
+    /// </summary>
+    partial void OnRawJsonChanged(string value)
+    {
+        if (_suppressJsonParse) return;
+        if (CurrentSchema is null) return; // nothing to bind to
+
+        JsonObject? parsed;
+        try
+        {
+            var node = JsonNode.Parse(value);
+            parsed = node?.AsObject();
+        }
+        catch (Exception ex)
+        {
+            RawJsonError = ex.Message;
+            return;
+        }
+        if (parsed is null)
+        {
+            RawJsonError = "JSON must be an object.";
+            return;
+        }
+
+        CurrentEntity = parsed;
+        ResolvedAssets = AssetLocator is not null
+            ? AssetResolver.Resolve(CurrentSchema, parsed, AssetLocator)
+            : Array.Empty<ResolvedAsset>();
+        RawJsonError = string.Empty;
+        IsDirty = true;
+        EntityFormChanged?.Invoke();
     }
 
     /// <summary>
@@ -316,37 +374,50 @@ public partial class MainWindowViewModel : ViewModelBase
     private void LoadSelectedEntity()
     {
         if (SelectedType is null || SelectedEntity is null) { ClearForm(); return; }
+        _suppressJsonParse = true;
         try
         {
-            var raw = _store.Get(SelectedType.Id, SelectedEntity.Id);
-            CurrentEntity = JsonNode.Parse(raw)?.AsObject();
-            CurrentSchema = SchemaBuilder.For(EntityTypes.Map[SelectedType.Id]);
-            RawJson = CurrentEntity?.ToJsonString(SaveJsonOpts) ?? string.Empty;
-            ResolvedAssets = (CurrentSchema is not null && CurrentEntity is not null && AssetLocator is not null)
-                ? AssetResolver.Resolve(CurrentSchema, CurrentEntity, AssetLocator)
-                : Array.Empty<ResolvedAsset>();
-            IsDirty = false;
-            SaveStatus = string.Empty;
+            try
+            {
+                var raw = _store.Get(SelectedType.Id, SelectedEntity.Id);
+                CurrentEntity = JsonNode.Parse(raw)?.AsObject();
+                CurrentSchema = SchemaBuilder.For(EntityTypes.Map[SelectedType.Id]);
+                RawJson = CurrentEntity?.ToJsonString(SaveJsonOpts) ?? string.Empty;
+                ResolvedAssets = (CurrentSchema is not null && CurrentEntity is not null && AssetLocator is not null)
+                    ? AssetResolver.Resolve(CurrentSchema, CurrentEntity, AssetLocator)
+                    : Array.Empty<ResolvedAsset>();
+                IsDirty = false;
+                SaveStatus = string.Empty;
+                RawJsonError = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                CurrentEntity = null;
+                CurrentSchema = null;
+                ResolvedAssets = Array.Empty<ResolvedAsset>();
+                RawJson = $"// load failed: {ex.Message}";
+                SaveStatus = string.Empty;
+                RawJsonError = string.Empty;
+            }
         }
-        catch (Exception ex)
-        {
-            CurrentEntity = null;
-            CurrentSchema = null;
-            ResolvedAssets = Array.Empty<ResolvedAsset>();
-            RawJson = $"// load failed: {ex.Message}";
-            SaveStatus = string.Empty;
-        }
+        finally { _suppressJsonParse = false; }
         EntityFormChanged?.Invoke();
     }
 
     private void ClearForm()
     {
-        CurrentEntity = null;
-        CurrentSchema = null;
-        ResolvedAssets = Array.Empty<ResolvedAsset>();
-        RawJson = string.Empty;
-        IsDirty = false;
-        SaveStatus = string.Empty;
+        _suppressJsonParse = true;
+        try
+        {
+            CurrentEntity = null;
+            CurrentSchema = null;
+            ResolvedAssets = Array.Empty<ResolvedAsset>();
+            RawJson = string.Empty;
+            IsDirty = false;
+            SaveStatus = string.Empty;
+            RawJsonError = string.Empty;
+        }
+        finally { _suppressJsonParse = false; }
         EntityFormChanged?.Invoke();
     }
 

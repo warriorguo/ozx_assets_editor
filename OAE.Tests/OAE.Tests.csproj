@@ -20,6 +20,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OAE.Core\OAE.Core.csproj" />
+    <!-- Needed for VM-level tests (OAE-33). The VM lives in OAE.App since
+         it has dependencies on the View layer (Avalonia controls aren't
+         touched at runtime by these tests, but the assembly must be loadable). -->
+    <ProjectReference Include="..\OAE.App\OAE.App.csproj" />
   </ItemGroup>
 
 </Project>
