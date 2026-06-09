@@ -78,7 +78,9 @@ public static class EditorMetadata
         [(typeof(SpawnPlanData), "waves[].entries[].enemyId")]  = new(RefTarget: "enemies"),
 
         // ── cargo / oiltank ────────────────────────────────────────────────
-        [(typeof(CargoData), "lootTableId")]                    = new(RefTarget: "loot_tables"),
+        // OZX-474 / OAE-37: CargoData.lootTableId removed — loot is now decided
+        // by the spawn context (room.floorLootTableId, FloorLootPlan, or the
+        // staticPlacements[] override below), not by the box. No mapping here.
         [(typeof(OilTankData), "lootTableId")]                  = new(RefTarget: "loot_tables"),
 
         // ── level_plans ────────────────────────────────────────────────────
@@ -92,6 +94,14 @@ public static class EditorMetadata
         [(typeof(LevelData), "floors[].rooms[].templateId")]    = new(RefTarget: "rooms"),
         [(typeof(LevelData), "floors[].rooms[].spawnPlanId")]   = new(RefTarget: "spawn_plans"),
         [(typeof(LevelData), "floors[].rooms[].lootPlanId")]    = new(RefTarget: "loot_tables"),
+        // OZX-471 / OAE-36: designer-authored static placements per room. The
+        // adapter switches on `kind`; the picker-ready fields below are only
+        // meaningful for specific kinds, but the metadata makes the dropdowns
+        // available unconditionally — the form already gates by string presence.
+        [(typeof(LevelData), "floors[].rooms[].staticPlacements[].lootTableId")] = new(RefTarget: "loot_tables"),
+        // OZX-489 / OAE-42: kind="skill" platform. skillId must reference a
+        // passive SkillData id.
+        [(typeof(LevelData), "floors[].rooms[].staticPlacements[].skillId")]     = new(RefTarget: "skills"),
 
         // ── player ─────────────────────────────────────────────────────────
         [(typeof(PlayerData), "headId")]                        = new(RefTarget: "heads"),

@@ -150,6 +150,51 @@ public class SchemaTests
     }
 
     [Fact]
+    public void CargoData_has_no_lootTableId_after_OZX_474()
+    {
+        // OZX-474 / OAE-37: cargo describes the BOX only; loot is decided by
+        // the spawn context, not the box. The EditorMetadata entry for it was
+        // removed at the same time — check both ends.
+        var schema = SchemaBuilder.For<CargoData>();
+        Assert.DoesNotContain(schema.Fields, f => f.Name == "lootTableId");
+        Assert.Null(EditorMetadata.For(typeof(CargoData), "lootTableId"));
+    }
+
+    [Fact]
+    public void RoomNodeData_exposes_staticPlacements_array_with_OZX_489_fields()
+    {
+        // OAE-36 / OAE-42: reflection picks up staticPlacements[] automatically.
+        // Lock in the sub-schema fields that the editor / picker rely on.
+        var schema = SchemaBuilder.For<LevelData>();
+        var floors = schema.Fields.First(f => f.Name == "floors");
+        var floorNested = floors.Element!.Nested!;
+        var rooms = floorNested.Fields.First(f => f.Name == "rooms");
+        var roomNested = rooms.Element!.Nested!;
+
+        var sp = roomNested.Fields.FirstOrDefault(f => f.Name == "staticPlacements");
+        Assert.NotNull(sp);
+        Assert.Equal(FieldKind.Array, sp!.Kind);
+        var entry = sp.Element!.Nested!;
+        var byName = entry.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("kind", byName.Keys);
+        Assert.Contains("prefabKey", byName.Keys);
+        Assert.Contains("count", byName.Keys);
+        Assert.Contains("cells", byName.Keys);
+        Assert.Contains("lootTableId", byName.Keys);
+        Assert.Contains("skillId", byName.Keys);          // OZX-489
+        Assert.Contains("buffDurationSeconds", byName.Keys); // OZX-489
+    }
+
+    [Fact]
+    public void EditorMetadata_resolves_staticPlacements_ref_targets()
+    {
+        Assert.Equal("skills",
+            EditorMetadata.For(typeof(LevelData), "floors[].rooms[].staticPlacements[].skillId")?.RefTarget);
+        Assert.Equal("loot_tables",
+            EditorMetadata.For(typeof(LevelData), "floors[].rooms[].staticPlacements[].lootTableId")?.RefTarget);
+    }
+
+    [Fact]
     public void Player_basic_template_carries_acceleration_and_deceleration_defaults()
     {
         var t = TemplateLoader.Get("player", "basic");
