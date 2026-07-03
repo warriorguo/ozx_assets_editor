@@ -37,6 +37,8 @@ public static class EntityTypes
         ["oiltank"]     = typeof(OilTankData),
         ["player"]      = typeof(PlayerData),
         ["progression"] = typeof(ProgressionData),
+        // OZX-533 / OAE-44: procedural moving-puddle hazard. JSON under GameData/puddles/.
+        ["puddles"]     = typeof(PuddleData),
         ["projectiles"] = typeof(ProjectileData),
         ["rooms"]       = typeof(RoomData),
         ["shields"]     = typeof(ShieldData),

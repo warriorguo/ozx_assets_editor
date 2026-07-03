@@ -48,6 +48,9 @@ public static class EditorMetadata
         [(typeof(EnemyData), "elite.skillPool[].skillId")] = new(RefTarget: "skills"),
         [(typeof(EnemyData), "animConfigKey")]           = new(AssetKey: "enemy-sprite"),
         [(typeof(EnemyData), "spriteKeys[]")]            = new(AssetKey: "enemy-sprite"),
+        // OZX-533 / OAE-44: enemies that deploy a moving-puddle hazard reference a
+        // PuddleData id — resolve it against the puddles bucket.
+        [(typeof(EnemyData), "puddleConfig.puddleId")]   = new(RefTarget: "puddles"),
 
         // ── weapons ────────────────────────────────────────────────────────
         // No weapon-sprite pipeline exists yet; spriteKeys stays a plain string

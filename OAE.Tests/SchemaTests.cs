@@ -8,14 +8,17 @@ namespace OAE.Tests;
 public class SchemaTests
 {
     [Fact]
-    public void EntityTypes_covers_all_22_buckets()
+    public void EntityTypes_covers_all_expected_buckets()
     {
-        Assert.Equal(22, EntityTypes.Map.Count);
+        // 22 original buckets + puddles (OAE-44). New buckets bump this count and
+        // must ship a template (see TemplateLoader_has_at_least_one_template_for_every_type).
+        Assert.Equal(23, EntityTypes.Map.Count);
         // Subdir id == OAE type id, by convention.
         Assert.Contains("enemies", EntityTypes.Map.Keys);
         Assert.Equal(typeof(EnemyData), EntityTypes.Map["enemies"]);
         Assert.Equal(typeof(WeaponData), EntityTypes.Map["weapons"]);
         Assert.Equal(typeof(SkillData), EntityTypes.Map["skills"]);
+        Assert.Equal(typeof(PuddleData), EntityTypes.Map["puddles"]);
     }
 
     [Fact]
@@ -235,6 +238,33 @@ public class SchemaTests
     {
         Assert.Equal("skills",
             EditorMetadata.For(typeof(EnemyData), "elite.skillPool[].skillId")?.RefTarget);
+    }
+
+    [Fact]
+    public void PuddleData_bucket_builds_a_schema_and_has_a_template()
+    {
+        // OAE-44: PuddleData is a first-class GameData entity type.
+        var schema = SchemaBuilder.For<PuddleData>();
+        var byName = schema.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("id", byName.Keys);
+        Assert.Contains("prefabKey", byName.Keys);
+        Assert.Contains("coreRadius", byName.Keys);
+        Assert.Contains("damage", byName.Keys);
+        Assert.Contains("targetLayer", byName.Keys);
+        Assert.Equal(FieldKind.Float, byName["coreRadius"].Kind);
+
+        var t = TemplateLoader.Get("puddles", "toxic");
+        Assert.NotNull(t);
+        var body = JsonNode.Parse(t!.Body)!.AsObject();
+        Assert.Equal("PuddleData", body["dataType"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void EditorMetadata_resolves_enemy_puddle_ref_target()
+    {
+        // OAE-44: enemy puddle deployers reference a PuddleData id.
+        Assert.Equal("puddles",
+            EditorMetadata.For(typeof(EnemyData), "puddleConfig.puddleId")?.RefTarget);
     }
 
     [Fact]
