@@ -195,6 +195,49 @@ public class SchemaTests
     }
 
     [Fact]
+    public void EnemyData_exposes_elite_config_sub_schema()
+    {
+        // OZX-535 / OAE-43: EnemyData.elite (EliteConfig) is picked up by reflection.
+        // Lock its shape so the form surfaces the stat-multiplier ranges + skill pool.
+        var schema = SchemaBuilder.For<EnemyData>();
+        var elite = schema.Fields.FirstOrDefault(f => f.Name == "elite");
+        Assert.NotNull(elite);
+        Assert.Equal(FieldKind.Object, elite!.Kind);
+
+        var byName = elite.Nested!.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("statMultipliers", byName.Keys);
+        Assert.Contains("skillPool", byName.Keys);
+        Assert.Equal(FieldKind.Array, byName["statMultipliers"].Kind);
+        Assert.Equal(FieldKind.Array, byName["skillPool"].Kind);
+
+        // statMultipliers[] element carries the stat + min/max multiplier fields.
+        var mult = byName["statMultipliers"].Element!.Nested!.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("stat", mult.Keys);
+        Assert.Contains("minMultiplier", mult.Keys);
+        Assert.Contains("maxMultiplier", mult.Keys);
+        Assert.Equal(FieldKind.Float, mult["minMultiplier"].Kind);
+    }
+
+    [Fact]
+    public void SpawnEntry_exposes_eliteCount_int()
+    {
+        // OZX-526 / OAE-43: SpawnEntry.eliteCount surfaces under waves[].entries[].
+        var schema = SchemaBuilder.For<SpawnPlanData>();
+        var waves = schema.Fields.First(f => f.Name == "waves");
+        var entries = waves.Element!.Nested!.Fields.First(f => f.Name == "entries");
+        var byName = entries.Element!.Nested!.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("eliteCount", byName.Keys);
+        Assert.Equal(FieldKind.Int, byName["eliteCount"].Kind);
+    }
+
+    [Fact]
+    public void EditorMetadata_resolves_elite_skillPool_ref_target()
+    {
+        Assert.Equal("skills",
+            EditorMetadata.For(typeof(EnemyData), "elite.skillPool[].skillId")?.RefTarget);
+    }
+
+    [Fact]
     public void Player_basic_template_carries_acceleration_and_deceleration_defaults()
     {
         var t = TemplateLoader.Get("player", "basic");

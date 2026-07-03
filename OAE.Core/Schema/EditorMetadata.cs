@@ -43,6 +43,9 @@ public static class EditorMetadata
         [(typeof(EnemyData), "aiProfileId")]             = new(RefTarget: "ai"),
         [(typeof(EnemyData), "spawnConfig.enemyIds[]")]  = new(RefTarget: "enemies"),
         [(typeof(EnemyData), "skills[].skillId")]        = new(RefTarget: "skills"),
+        // OZX-528/535 / OAE-43: an elite rolls one skill from this pool at spawn.
+        // Same SkillBinding.skillId shape as skills[] above → skills bucket.
+        [(typeof(EnemyData), "elite.skillPool[].skillId")] = new(RefTarget: "skills"),
         [(typeof(EnemyData), "animConfigKey")]           = new(AssetKey: "enemy-sprite"),
         [(typeof(EnemyData), "spriteKeys[]")]            = new(AssetKey: "enemy-sprite"),
 
