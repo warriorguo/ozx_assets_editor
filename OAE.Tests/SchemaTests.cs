@@ -295,6 +295,66 @@ public class SchemaTests
     }
 
     [Fact]
+    public void RoomData_exposes_background_orientation_fields()
+    {
+        // OZX-577,578,581 / OAE-49,50,51: per-room background override + fixed
+        // background surface on the standalone RoomData bucket.
+        var schema = SchemaBuilder.For<RoomData>();
+        var byName = schema.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("background", byName.Keys);
+        Assert.Equal(FieldKind.String, byName["background"].Kind);
+        Assert.Contains("fixedBackground", byName.Keys);
+        Assert.Equal(FieldKind.String, byName["fixedBackground"].Kind);
+        Assert.Contains("movingBackground", byName.Keys);
+        Assert.Equal(FieldKind.Object, byName["movingBackground"].Kind);
+    }
+
+    [Fact]
+    public void RoomData_movingBackground_sub_schema_exposes_direction_and_density()
+    {
+        // OZX-582,583 / OAE-52: moving distant-view background config.
+        var schema = SchemaBuilder.For<RoomData>();
+        var moving = schema.Fields.First(f => f.Name == "movingBackground");
+        var byName = moving.Nested!.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("assetKey", byName.Keys);
+        Assert.Contains("direction", byName.Keys);
+        Assert.Contains("density", byName.Keys);
+        Assert.Contains("speed", byName.Keys);
+        Assert.Equal(FieldKind.String, byName["direction"].Kind);
+        Assert.Equal(FieldKind.Int, byName["density"].Kind);
+    }
+
+    [Fact]
+    public void RoomNodeData_in_level_exposes_background_orientation_fields()
+    {
+        // OAE-49,50,51,52: same fields on RoomNodeData nested in LevelData.
+        var schema = SchemaBuilder.For<LevelData>();
+        var rooms = schema.Fields.First(f => f.Name == "floors")
+                          .Element!.Nested!.Fields.First(f => f.Name == "rooms");
+        var byName = rooms.Element!.Nested!.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("background", byName.Keys);
+        Assert.Contains("fixedBackground", byName.Keys);
+        Assert.Contains("movingBackground", byName.Keys);
+    }
+
+    [Theory]
+    [InlineData("background")]
+    [InlineData("fixedBackground")]
+    [InlineData("movingBackground.direction")]
+    public void EditorMetadata_describes_room_background_fields(string field)
+    {
+        // OAE-49..52: help text attached on both the standalone-room and the
+        // in-level room paths.
+        var onRoom = EditorMetadata.For(typeof(RoomData), field);
+        Assert.NotNull(onRoom);
+        Assert.False(string.IsNullOrWhiteSpace(onRoom!.Description));
+
+        var onNode = EditorMetadata.For(typeof(LevelData), $"floors[].rooms[].{field}");
+        Assert.NotNull(onNode);
+        Assert.Equal(onRoom.Description, onNode!.Description);
+    }
+
+    [Fact]
     public void Player_basic_template_carries_acceleration_and_deceleration_defaults()
     {
         var t = TemplateLoader.Get("player", "basic");

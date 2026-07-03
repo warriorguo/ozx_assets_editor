@@ -115,6 +115,21 @@ public static class EditorMetadata
         // passive SkillData id.
         [(typeof(LevelData), "floors[].rooms[].staticPlacements[].skillId")]     = new(RefTarget: "skills"),
 
+        // ── room backgrounds (OAE-49,50,51,52) ──────────────────────────────
+        // These fields exist on BOTH the standalone RoomData ("rooms" bucket)
+        // and RoomNodeData inside LevelData ("levels" bucket, floors[].rooms[]).
+        // Annotated on both so the description shows wherever a room is edited.
+
+        // OZX-577,578 / OAE-49,50: per-room orientation override.
+        [(typeof(RoomData), "background")] = new(Description: BackgroundOrientationHelp),
+        [(typeof(LevelData), "floors[].rooms[].background")] = new(Description: BackgroundOrientationHelp),
+        // OZX-581 / OAE-51: screen-fixed background behind the room.
+        [(typeof(RoomData), "fixedBackground")] = new(Description: FixedBackgroundHelp),
+        [(typeof(LevelData), "floors[].rooms[].fixedBackground")] = new(Description: FixedBackgroundHelp),
+        // OZX-582,583 / OAE-52: moving distant-view background travel axis.
+        [(typeof(RoomData), "movingBackground.direction")] = new(Description: MovingBackgroundDirectionHelp),
+        [(typeof(LevelData), "floors[].rooms[].movingBackground.direction")] = new(Description: MovingBackgroundDirectionHelp),
+
         // ── player ─────────────────────────────────────────────────────────
         [(typeof(PlayerData), "headId")]                        = new(RefTarget: "heads"),
         [(typeof(PlayerData), "startingSkills[].skillId")]      = new(RefTarget: "skills"),
@@ -141,6 +156,24 @@ public static class EditorMetadata
         //   - PlayerData.animConfigKey — could be enemy-sprite but player's
         //     sprite pipeline has different conventions; left opaque.
     };
+
+    // Shared help strings for the room-background fields (OAE-49..52). Kept as
+    // consts so the standalone-room and in-level-room annotations stay in sync.
+    private const string BackgroundOrientationHelp =
+        "Optional background orientation override. Tokens match the background sprite-name suffix: " +
+        "Top, TopBottom, LeftRight, All. Single-edge Top art is reused for bottom-opening rooms by " +
+        "rotating the background transform 180° — there is no separate Bottom asset (OZX-577). " +
+        "Empty = default openDoors-driven selection.";
+
+    private const string FixedBackgroundHelp =
+        "Optional ResourcesDB key of a screen-fixed background rendered behind the room background " +
+        "(convention: 'fixedbackground/<name>', e.g. 'fixedbackground/galaxy'; OZX-581). " +
+        "Empty = this room shows no fixed background.";
+
+    private const string MovingBackgroundDirectionHelp =
+        "Travel axis for the moving distant-view background (cars crossing the viewport): " +
+        "'left-right' (horizontal) or 'top-bottom' (vertical). Only meaningful when " +
+        "movingBackground.assetKey is set (the discriminator that enables the effect).";
 
     public static EditorMeta? For(Type rootType, string jsonPath) =>
         Map.TryGetValue((rootType, jsonPath), out var m) ? m : null;
