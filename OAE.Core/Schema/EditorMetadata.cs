@@ -51,6 +51,12 @@ public static class EditorMetadata
         // OZX-533 / OAE-44: enemies that deploy a moving-puddle hazard reference a
         // PuddleData id — resolve it against the puddles bucket.
         [(typeof(EnemyData), "puddleConfig.puddleId")]   = new(RefTarget: "puddles"),
+        // OZX-546 / OAE-45,47: enemy creep is opt-in via this flag. JsonUtility
+        // default-constructs an omitted creepConfig to a non-null instance, so a
+        // bare presence check would make every enemy grow creep — the enabled bool
+        // is the real discriminator. Authored creep enemies MUST set it true.
+        [(typeof(EnemyData), "creepConfig.enabled")]     = new(
+            Description: "Opt-in gate for enemy creep. Must be true for this enemy to grow creep on death; an omitted creepConfig deserializes to a non-null default, so this flag (not object presence) decides."),
 
         // ── weapons ────────────────────────────────────────────────────────
         // No weapon-sprite pipeline exists yet; spriteKeys stays a plain string

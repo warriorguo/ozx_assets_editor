@@ -268,6 +268,33 @@ public class SchemaTests
     }
 
     [Fact]
+    public void EnemyData_exposes_creepConfig_sub_schema_with_enabled_gate()
+    {
+        // OZX-546 / OAE-45,47: EnemyData.creepConfig (CreepConfig) is picked up by
+        // reflection; the enabled bool is the opt-in discriminator.
+        var schema = SchemaBuilder.For<EnemyData>();
+        var creep = schema.Fields.FirstOrDefault(f => f.Name == "creepConfig");
+        Assert.NotNull(creep);
+        Assert.Equal(FieldKind.Object, creep!.Kind);
+
+        var byName = creep.Nested!.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("enabled", byName.Keys);
+        Assert.Equal(FieldKind.Bool, byName["enabled"].Kind);
+        Assert.Contains("maxDepth", byName.Keys);
+        Assert.Contains("growInterval", byName.Keys);
+        Assert.Contains("growPerTick", byName.Keys);
+        Assert.Contains("growRadius", byName.Keys);
+    }
+
+    [Fact]
+    public void EditorMetadata_describes_creepConfig_enabled_gate()
+    {
+        var meta = EditorMetadata.For(typeof(EnemyData), "creepConfig.enabled");
+        Assert.NotNull(meta);
+        Assert.False(string.IsNullOrWhiteSpace(meta!.Description));
+    }
+
+    [Fact]
     public void Player_basic_template_carries_acceleration_and_deceleration_defaults()
     {
         var t = TemplateLoader.Get("player", "basic");
