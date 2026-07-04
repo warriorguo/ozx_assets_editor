@@ -10,10 +10,12 @@ public class SchemaTests
     [Fact]
     public void EntityTypes_covers_all_expected_buckets()
     {
-        // 22 original buckets + puddles (OAE-44) + backgrounds (OAE-48)
-        // + name_libraries (OAE-53). New buckets bump this count and must ship a
-        // template (see TemplateLoader_has_at_least_one_template_for_every_type).
-        Assert.Equal(25, EntityTypes.Map.Count);
+        // 22 original buckets − ai (dead AI-profile system removed upstream,
+        // 3211ed71) + puddles (OAE-44) + backgrounds (OAE-48) + name_libraries
+        // (OAE-53) = 24. New buckets bump this count and must ship a template
+        // (see TemplateLoader_has_at_least_one_template_for_every_type).
+        Assert.Equal(24, EntityTypes.Map.Count);
+        Assert.DoesNotContain("ai", EntityTypes.Map.Keys);
         // Subdir id == OAE type id, by convention.
         Assert.Contains("enemies", EntityTypes.Map.Keys);
         Assert.Equal(typeof(EnemyData), EntityTypes.Map["enemies"]);

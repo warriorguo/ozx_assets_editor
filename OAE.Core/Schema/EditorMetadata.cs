@@ -40,7 +40,9 @@ public static class EditorMetadata
         // ── enemies ────────────────────────────────────────────────────────
         [(typeof(EnemyData), "projectileId")]            = new(RefTarget: "projectiles"),
         [(typeof(EnemyData), "dropTableId")]             = new(RefTarget: "loot_tables"),
-        [(typeof(EnemyData), "aiProfileId")]             = new(RefTarget: "ai"),
+        // NOTE: aiProfileId + the "ai" bucket were removed when ozx_base deleted the
+        // dead AI-profile system (3211ed71). Enemy behavior is driven by the state
+        // machine + passive/idleBehavior/attackType, not a data-driven profile.
         [(typeof(EnemyData), "spawnConfig.enemyIds[]")]  = new(RefTarget: "enemies"),
         [(typeof(EnemyData), "skills[].skillId")]        = new(RefTarget: "skills"),
         // OZX-528/535 / OAE-43: an elite rolls one skill from this pool at spawn.
@@ -77,7 +79,7 @@ public static class EditorMetadata
         [(typeof(ItemData), "spriteKey")] = new(AssetKey: "item-icon"),
 
         // ── bosses ─────────────────────────────────────────────────────────
-        [(typeof(BossData), "aiProfileId")]                     = new(RefTarget: "ai"),
+        // aiProfileId removed alongside the dead AI-profile system (see enemies).
         [(typeof(BossData), "dropTableId")]                     = new(RefTarget: "loot_tables"),
         [(typeof(BossData), "spriteKeys[]")]                    = new(AssetKey: "enemy-sprite"),
         [(typeof(BossData), "phases[].summonPlanId")]           = new(RefTarget: "spawn_plans"),

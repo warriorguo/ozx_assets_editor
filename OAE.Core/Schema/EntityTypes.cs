@@ -21,7 +21,6 @@ public static class EntityTypes
 {
     public static readonly IReadOnlyDictionary<string, Type> Map = new Dictionary<string, Type>
     {
-        ["ai"]          = typeof(AIProfileData),
         // OZX-547 / OAE-48: per-background decorative light layout. id == the
         // background sprite asset name. JSON under GameData/backgrounds/.
         ["backgrounds"] = typeof(BackgroundLightData),

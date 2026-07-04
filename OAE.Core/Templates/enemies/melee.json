@@ -26,7 +26,6 @@
       "defense": 0,
       "attackRange": 0.5
     },
-    "aiProfileId": "ai_stationary_melee",
     "dropTableId": "common_enemy",
     "animConfigKey": "",
     "weaponConfig": {

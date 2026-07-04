@@ -26,7 +26,6 @@
     "category": "bug",
     "role": "air",
     "attackType": "ranged",
-    "aiProfileId": "ai_passive_wander",
     "dropTableId": "common_enemy",
     "projectileId": "",
     "animConfigKey": "",
