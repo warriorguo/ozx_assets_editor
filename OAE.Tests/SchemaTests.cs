@@ -10,10 +10,10 @@ public class SchemaTests
     [Fact]
     public void EntityTypes_covers_all_expected_buckets()
     {
-        // 22 original buckets + puddles (OAE-44) + backgrounds (OAE-48). New
-        // buckets bump this count and must ship a template (see
-        // TemplateLoader_has_at_least_one_template_for_every_type).
-        Assert.Equal(24, EntityTypes.Map.Count);
+        // 22 original buckets + puddles (OAE-44) + backgrounds (OAE-48)
+        // + name_libraries (OAE-53). New buckets bump this count and must ship a
+        // template (see TemplateLoader_has_at_least_one_template_for_every_type).
+        Assert.Equal(25, EntityTypes.Map.Count);
         // Subdir id == OAE type id, by convention.
         Assert.Contains("enemies", EntityTypes.Map.Keys);
         Assert.Equal(typeof(EnemyData), EntityTypes.Map["enemies"]);
@@ -21,6 +21,7 @@ public class SchemaTests
         Assert.Equal(typeof(SkillData), EntityTypes.Map["skills"]);
         Assert.Equal(typeof(PuddleData), EntityTypes.Map["puddles"]);
         Assert.Equal(typeof(BackgroundLightData), EntityTypes.Map["backgrounds"]);
+        Assert.Equal(typeof(NameLibraryData), EntityTypes.Map["name_libraries"]);
     }
 
     [Fact]
@@ -386,6 +387,40 @@ public class SchemaTests
         var meta = EditorMetadata.For(typeof(BackgroundLightData), "lights[].type");
         Assert.NotNull(meta);
         Assert.False(string.IsNullOrWhiteSpace(meta!.Description));
+    }
+
+    [Fact]
+    public void NameLibraryData_bucket_builds_a_schema_and_has_a_template()
+    {
+        // OZX-586 / OAE-53: name-segment library is a first-class GameData type.
+        var schema = SchemaBuilder.For<NameLibraryData>();
+        var byName = schema.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("id", byName.Keys);
+        Assert.Contains("pools", byName.Keys);
+        Assert.Equal(FieldKind.Array, byName["pools"].Kind);
+
+        var pool = byName["pools"].Element!.Nested!.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("key", pool.Keys);
+        Assert.Contains("values", pool.Keys);
+        Assert.Equal(FieldKind.Array, pool["values"].Kind);
+
+        var t = TemplateLoader.Get("name_libraries", "basic");
+        Assert.NotNull(t);
+        var body = JsonNode.Parse(t!.Body)!.AsObject();
+        Assert.Equal("NameLibraryData", body["dataType"]!.GetValue<string>());
+    }
+
+    [Theory]
+    [InlineData(typeof(WeaponData))]
+    [InlineData(typeof(ItemData))]
+    public void Equipment_templates_expose_nameTemplate_field(Type clrType)
+    {
+        // OZX-586 / OAE-53: equipment templates carry a nameTemplate that the
+        // resolver expands against the name library. Reflection surfaces it.
+        var schema = SchemaBuilder.For(clrType);
+        var byName = schema.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("nameTemplate", byName.Keys);
+        Assert.Equal(FieldKind.String, byName["nameTemplate"].Kind);
     }
 
     [Fact]

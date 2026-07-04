@@ -1,0 +1,19 @@
+{
+  "id": "basic",
+  "label": "Name library (segment pools for name templates)",
+  "description": "A library of name segments used to resolve equipment name templates (OZX-586). Each pool is a keyed list of candidate strings; a name template (e.g. WeaponData.nameTemplate) references pools by key and the resolver picks a random entry per placeholder. Loaded as GameData (dataType NameLibraryData) under GameData/name_libraries/.",
+  "body": {
+    "dataType": "NameLibraryData",
+    "id": "",
+    "pools": [
+      {
+        "key": "name1",
+        "values": ["Zane", "Kael", "Orion"]
+      },
+      {
+        "key": "name2",
+        "values": ["Vex", "Kane", "Steele"]
+      }
+    ]
+  }
+}

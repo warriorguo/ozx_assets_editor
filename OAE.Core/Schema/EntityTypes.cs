@@ -37,6 +37,9 @@ public static class EntityTypes
         ["level_plans"] = typeof(LevelBasePlanData),
         ["levels"]      = typeof(LevelData),
         ["loot_tables"] = typeof(LootTableData),
+        // OZX-586 / OAE-53: name-segment library resolving equipment name
+        // templates (WeaponData/ItemData.nameTemplate). JSON under GameData/name_libraries/.
+        ["name_libraries"] = typeof(NameLibraryData),
         ["oiltank"]     = typeof(OilTankData),
         ["player"]      = typeof(PlayerData),
         ["progression"] = typeof(ProgressionData),
