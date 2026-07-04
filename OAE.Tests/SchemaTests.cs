@@ -10,15 +10,17 @@ public class SchemaTests
     [Fact]
     public void EntityTypes_covers_all_expected_buckets()
     {
-        // 22 original buckets + puddles (OAE-44). New buckets bump this count and
-        // must ship a template (see TemplateLoader_has_at_least_one_template_for_every_type).
-        Assert.Equal(23, EntityTypes.Map.Count);
+        // 22 original buckets + puddles (OAE-44) + backgrounds (OAE-48). New
+        // buckets bump this count and must ship a template (see
+        // TemplateLoader_has_at_least_one_template_for_every_type).
+        Assert.Equal(24, EntityTypes.Map.Count);
         // Subdir id == OAE type id, by convention.
         Assert.Contains("enemies", EntityTypes.Map.Keys);
         Assert.Equal(typeof(EnemyData), EntityTypes.Map["enemies"]);
         Assert.Equal(typeof(WeaponData), EntityTypes.Map["weapons"]);
         Assert.Equal(typeof(SkillData), EntityTypes.Map["skills"]);
         Assert.Equal(typeof(PuddleData), EntityTypes.Map["puddles"]);
+        Assert.Equal(typeof(BackgroundLightData), EntityTypes.Map["backgrounds"]);
     }
 
     [Fact]
@@ -352,6 +354,38 @@ public class SchemaTests
         var onNode = EditorMetadata.For(typeof(LevelData), $"floors[].rooms[].{field}");
         Assert.NotNull(onNode);
         Assert.Equal(onRoom.Description, onNode!.Description);
+    }
+
+    [Fact]
+    public void BackgroundLightData_bucket_builds_a_schema_and_has_a_template()
+    {
+        // OAE-48: per-background light layout is a first-class GameData entity type.
+        var schema = SchemaBuilder.For<BackgroundLightData>();
+        var byName = schema.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("id", byName.Keys);
+        Assert.Contains("lights", byName.Keys);
+        Assert.Equal(FieldKind.Array, byName["lights"].Kind);
+
+        var light = byName["lights"].Element!.Nested!.Fields.ToDictionary(f => f.Name);
+        Assert.Contains("x", light.Keys);
+        Assert.Contains("y", light.Keys);
+        Assert.Contains("rotationDeg", light.Keys);
+        Assert.Contains("type", light.Keys);
+        Assert.Contains("scale", light.Keys);
+        Assert.Contains("alpha", light.Keys);
+
+        var t = TemplateLoader.Get("backgrounds", "lights");
+        Assert.NotNull(t);
+        var body = JsonNode.Parse(t!.Body)!.AsObject();
+        Assert.Equal("BackgroundLightData", body["dataType"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void EditorMetadata_describes_background_light_type()
+    {
+        var meta = EditorMetadata.For(typeof(BackgroundLightData), "lights[].type");
+        Assert.NotNull(meta);
+        Assert.False(string.IsNullOrWhiteSpace(meta!.Description));
     }
 
     [Fact]

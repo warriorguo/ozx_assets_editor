@@ -22,6 +22,9 @@ public static class EntityTypes
     public static readonly IReadOnlyDictionary<string, Type> Map = new Dictionary<string, Type>
     {
         ["ai"]          = typeof(AIProfileData),
+        // OZX-547 / OAE-48: per-background decorative light layout. id == the
+        // background sprite asset name. JSON under GameData/backgrounds/.
+        ["backgrounds"] = typeof(BackgroundLightData),
         ["beams"]       = typeof(BeamData),
         ["bosses"]      = typeof(BossData),
         ["box_rarity"]  = typeof(BoxRarityConfigData),
@@ -59,6 +62,24 @@ public static class EntityTypes
         // under GameData/levels/. The two are distinguished by their dataType field.
         ["level_plans"] = "levels",
     };
+
+    /// <summary>
+    /// OAE-48: buckets whose entity ids mirror an <em>external asset name</em>
+    /// (e.g. a sprite asset name) rather than the default lower-snake id
+    /// convention. <see cref="Store.FsStore"/> validates ids in these buckets
+    /// against a looser mixed-case pattern so files like
+    /// <c>FactoryWall_Big_All_1.json</c> can be read and authored.
+    /// </summary>
+    public static readonly IReadOnlySet<string> AssetNameIdTypes = new HashSet<string>
+    {
+        // BackgroundLightData.id == the background sprite asset name (PascalCase).
+        "backgrounds",
+    };
+
+    /// <summary>True when <paramref name="entityType"/>'s ids mirror an external
+    /// asset name (mixed-case), not the default lower-snake convention.</summary>
+    public static bool UsesAssetNameId(string entityType) =>
+        AssetNameIdTypes.Contains(entityType);
 
     /// <summary>
     /// Returns the on-disk subdir under <c>GameData/</c> that holds entities of

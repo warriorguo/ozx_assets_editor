@@ -130,6 +130,12 @@ public static class EditorMetadata
         [(typeof(RoomData), "movingBackground.direction")] = new(Description: MovingBackgroundDirectionHelp),
         [(typeof(LevelData), "floors[].rooms[].movingBackground.direction")] = new(Description: MovingBackgroundDirectionHelp),
 
+        // ── backgrounds (OAE-48) ─────────────────────────────────────────────
+        // OZX-547/548: per-background additive glow decals. lights[].type is a
+        // color/style id the renderer resolves as ResourcesDB key "light/{type}".
+        [(typeof(BackgroundLightData), "lights[].type")] = new(
+            Description: "Glow color/style id. The renderer resolves it as ResourcesDB key 'light/<type>' (e.g. 'blue_spot' → 'light/blue_spot')."),
+
         // ── player ─────────────────────────────────────────────────────────
         [(typeof(PlayerData), "headId")]                        = new(RefTarget: "heads"),
         [(typeof(PlayerData), "startingSkills[].skillId")]      = new(RefTarget: "skills"),

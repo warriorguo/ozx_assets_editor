@@ -80,6 +80,29 @@ public class FsStoreTests
         Assert.Throws<ArgumentException>(() => store.Create("items", badId, "{}"));
     }
 
+    [Fact]
+    public void Backgrounds_bucket_accepts_mixed_case_asset_name_ids()
+    {
+        // OAE-48: BackgroundLightData.id mirrors the sprite asset name (PascalCase),
+        // so the backgrounds bucket validates ids against the looser asset pattern.
+        using var sandbox = NewSandbox();
+        var store = new FsStore(sandbox.GameData);
+        const string id = "FactoryWall_Big_All_1";
+        var body = "{ \"dataType\": \"BackgroundLightData\", \"id\": \"" + id + "\", \"lights\": [] }\n";
+        store.Create("backgrounds", id, body);
+        Assert.Equal(body, store.Get("backgrounds", id));
+        Assert.Equal(id, store.List("backgrounds").Single().Id);
+    }
+
+    [Fact]
+    public void Non_asset_buckets_still_reject_mixed_case_ids()
+    {
+        // The looser pattern is scoped to asset-name buckets only.
+        using var sandbox = NewSandbox();
+        var store = new FsStore(sandbox.GameData);
+        Assert.Throws<ArgumentException>(() => store.Create("enemies", "FactoryWall_Big", "{}\n"));
+    }
+
     // ── OAE-32: shared-subdir behaviour (levels ↔ level_plans) ──────────
 
     [Fact]

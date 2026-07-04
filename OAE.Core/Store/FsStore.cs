@@ -26,6 +26,9 @@ public sealed class FsStore : IStore
         EntityTypes.Map.Keys.ToDictionary(k => k, EntityTypes.SubdirOf);
 
     private static readonly Regex IdPattern = new("^[a-z0-9_]+$", RegexOptions.Compiled);
+    // OAE-48: asset-name-id buckets (e.g. backgrounds) carry mixed-case ids that
+    // mirror a sprite asset name — validate them against a looser pattern.
+    private static readonly Regex AssetIdPattern = new("^[A-Za-z0-9_]+$", RegexOptions.Compiled);
 
     private readonly string _gameDataDir;
     private readonly string _projectRoot;
@@ -81,8 +84,7 @@ public sealed class FsStore : IStore
 
     public string Create(string entityType, string id, string json)
     {
-        ValidateId(id);
-        var path = ResolveFile(entityType, id);
+        var path = ResolveFile(entityType, id); // ResolveFile validates the id
         lock (_lock)
         {
             if (File.Exists(path))
@@ -164,14 +166,18 @@ public sealed class FsStore : IStore
 
     private string ResolveFile(string entityType, string id)
     {
-        ValidateId(id);
+        ValidateId(entityType, id);
         return Path.Combine(ResolveSubdir(entityType), id + ".json");
     }
 
-    private static void ValidateId(string id)
+    private static void ValidateId(string entityType, string id)
     {
-        if (string.IsNullOrEmpty(id) || !IdPattern.IsMatch(id))
-            throw new ArgumentException($"invalid id (expected [a-z0-9_]+): {id}", nameof(id));
+        var assetName = EntityTypes.UsesAssetNameId(entityType);
+        var pattern = assetName ? AssetIdPattern : IdPattern;
+        if (string.IsNullOrEmpty(id) || !pattern.IsMatch(id))
+            throw new ArgumentException(
+                $"invalid id (expected {(assetName ? "[A-Za-z0-9_]+" : "[a-z0-9_]+")}): {id}",
+                nameof(id));
     }
 
     private static void AtomicWrite(string path, string contents)

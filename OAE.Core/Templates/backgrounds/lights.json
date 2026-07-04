@@ -1,0 +1,19 @@
+{
+  "id": "lights",
+  "label": "Background light layout (additive glow decals)",
+  "description": "Per-background decorative light layout (OZX-547). The 'id' must equal the background sprite's asset name (e.g. 'FactoryWall_Big_All_1') so the displayed background — including a randomly-picked variant — is matched to its own light layout. Each light is an additive glow stamped onto the ground-lighting layer at an absolute world position. Data only; rendering is OZX-548.",
+  "body": {
+    "dataType": "BackgroundLightData",
+    "id": "",
+    "lights": [
+      {
+        "x": 0.0,
+        "y": 0.0,
+        "rotationDeg": 0.0,
+        "type": "blue_spot",
+        "scale": 1.0,
+        "alpha": 1.0
+      }
+    ]
+  }
+}
