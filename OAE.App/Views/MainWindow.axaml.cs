@@ -121,6 +121,36 @@ public partial class MainWindow : Window
         if (DataContext is MainWindowViewModel vm) vm.Revert();
     }
 
+    private void OnUndoClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.Undo();
+    }
+
+    private void OnRedoClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm) vm.Redo();
+    }
+
+    // OAE-54: ⌘Z / ⇧⌘Z drive the model-level undo/redo. The event bubbles to
+    // the window from the focused control; a focused TextBox (e.g. the Raw JSON
+    // tab) keeps its own in-field edit-undo, and everywhere else the gesture
+    // reaches here and drives the unified model history.
+    protected override void OnKeyDown(Avalonia.Input.KeyEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm
+            && e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Meta)
+            && e.Key == Avalonia.Input.Key.Z)
+        {
+            if (e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift))
+                vm.Redo();
+            else
+                vm.Undo();
+            e.Handled = true;
+            return;
+        }
+        base.OnKeyDown(e);
+    }
+
     private async void OnImagesClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm) return;

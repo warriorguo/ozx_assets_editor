@@ -140,6 +140,118 @@ public partial class MainWindowViewModel : ViewModelBase
     // binding's JsonObject reference). Same when loading or clearing.
     private bool _suppressJsonParse;
 
+    // ── undo/redo (OAE-54) ────────────────────────────────────────────────
+    // History is kept over serialised snapshots of the canonical model
+    // (CurrentEntity), so a single stack unifies edits made through the form
+    // and through the Raw JSON tab. Snapshots use SaveJsonOpts so they compare
+    // equal to what Save() would write.
+    private readonly Stack<string> _undo = new();
+    private readonly Stack<string> _redo = new();
+    // The snapshot representing the model's current committed state (top of the
+    // "present"). Prior states live in _undo; undone states live in _redo.
+    private string _lastSnapshot = string.Empty;
+    // The loaded/saved baseline — IsDirty is derived by comparing against it so
+    // undoing back to the on-disk state correctly clears the dirty flag.
+    private string _loadedBaseline = string.Empty;
+    // Guard: restoring a snapshot during Undo/Redo must not itself capture history.
+    private bool _applyingHistory;
+    // Coalesce a run of consecutive Raw-JSON keystrokes into one undo step
+    // (the tab parses on every keystroke; one step per edit-run, not per key).
+    private bool _coalesceRaw;
+
+    /// <summary>Which surface produced a model change — drives raw-edit coalescing.</summary>
+    private enum EditKind { Form, Raw }
+
+    public bool CanUndo => _undo.Count > 0;
+    public bool CanRedo => _redo.Count > 0;
+
+    /// <summary>Raised whenever the undo/redo availability changes.</summary>
+    public event Action? HistoryChanged;
+
+    private void NotifyHistoryChanged()
+    {
+        OnPropertyChanged(nameof(CanUndo));
+        OnPropertyChanged(nameof(CanRedo));
+        HistoryChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Reset the undo/redo history to a fresh baseline (entity loaded, cleared,
+    /// or saved). No prior states are reachable after this.
+    /// </summary>
+    private void ResetHistory(string baseline)
+    {
+        _undo.Clear();
+        _redo.Clear();
+        _lastSnapshot = baseline;
+        _loadedBaseline = baseline;
+        _coalesceRaw = false;
+        NotifyHistoryChanged();
+    }
+
+    /// <summary>
+    /// Record a transition of the canonical model. Pushes the prior snapshot
+    /// onto the undo stack and clears the redo stack. A run of Raw-JSON edits
+    /// coalesces into the single undo step opened by the first edit of the run.
+    /// </summary>
+    private void CaptureHistory(EditKind kind)
+    {
+        if (_applyingHistory || CurrentEntity is null) return;
+        var current = CurrentEntity.ToJsonString(SaveJsonOpts);
+        if (string.Equals(current, _lastSnapshot, StringComparison.Ordinal)) return;
+
+        if (kind == EditKind.Raw && _coalesceRaw)
+        {
+            // Already mid raw-edit run — extend the current step, don't open a new one.
+            _lastSnapshot = current;
+            return;
+        }
+
+        _undo.Push(_lastSnapshot);
+        _redo.Clear();
+        _lastSnapshot = current;
+        _coalesceRaw = kind == EditKind.Raw;
+        NotifyHistoryChanged();
+    }
+
+    /// <summary>Undo the last edit, moving the current state onto the redo stack.</summary>
+    public void Undo()
+    {
+        if (_undo.Count == 0) return;
+        _redo.Push(_lastSnapshot);
+        RestoreSnapshot(_undo.Pop());
+    }
+
+    /// <summary>Redo the last undone edit.</summary>
+    public void Redo()
+    {
+        if (_redo.Count == 0) return;
+        _undo.Push(_lastSnapshot);
+        RestoreSnapshot(_redo.Pop());
+    }
+
+    private void RestoreSnapshot(string snapshot)
+    {
+        _applyingHistory = true;
+        try
+        {
+            CurrentEntity = JsonNode.Parse(snapshot)?.AsObject();
+            _lastSnapshot = snapshot;
+            _coalesceRaw = false;
+            _suppressJsonParse = true;
+            RawJson = snapshot;
+            _suppressJsonParse = false;
+            RawJsonError = string.Empty;
+            ResolvedAssets = (CurrentSchema is not null && CurrentEntity is not null && AssetLocator is not null)
+                ? AssetResolver.Resolve(CurrentSchema, CurrentEntity, AssetLocator)
+                : Array.Empty<ResolvedAsset>();
+            IsDirty = !string.Equals(_lastSnapshot, _loadedBaseline, StringComparison.Ordinal);
+        }
+        finally { _applyingHistory = false; }
+        NotifyHistoryChanged();
+        EntityFormChanged?.Invoke();
+    }
+
     /// <summary>Raised when <see cref="CurrentEntity"/> is replaced (entity selected, reverted, etc).</summary>
     public event Action? EntityFormChanged;
 
@@ -155,6 +267,7 @@ public partial class MainWindowViewModel : ViewModelBase
             RawJsonError = string.Empty;
         }
         finally { _suppressJsonParse = false; }
+        CaptureHistory(EditKind.Form);
     }
 
     /// <summary>
@@ -190,6 +303,7 @@ public partial class MainWindowViewModel : ViewModelBase
             : Array.Empty<ResolvedAsset>();
         RawJsonError = string.Empty;
         IsDirty = true;
+        CaptureHistory(EditKind.Raw);
         EntityFormChanged?.Invoke();
     }
 
@@ -254,6 +368,9 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _store.Update(SelectedType.Id, SelectedEntity.Id, json);
             IsDirty = false;
+            // Save is a history boundary (OAE-54): the saved state becomes the
+            // new baseline and prior edits are no longer undoable.
+            ResetHistory(CurrentEntity.ToJsonString(SaveJsonOpts));
             // A new id may have been added (or a rename, eventually) — keep the
             // picker dropdowns in sync.
             RebuildReferenceIndex();
@@ -389,6 +506,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 IsDirty = false;
                 SaveStatus = string.Empty;
                 RawJsonError = string.Empty;
+                // Loaded state is the new history baseline; no prior edits are
+                // reachable and undo cannot cross into another entity.
+                ResetHistory(CurrentEntity?.ToJsonString(SaveJsonOpts) ?? string.Empty);
             }
             catch (Exception ex)
             {
@@ -398,6 +518,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 RawJson = $"// load failed: {ex.Message}";
                 SaveStatus = string.Empty;
                 RawJsonError = string.Empty;
+                ResetHistory(string.Empty);
             }
         }
         finally { _suppressJsonParse = false; }
@@ -416,6 +537,7 @@ public partial class MainWindowViewModel : ViewModelBase
             IsDirty = false;
             SaveStatus = string.Empty;
             RawJsonError = string.Empty;
+            ResetHistory(string.Empty);
         }
         finally { _suppressJsonParse = false; }
         EntityFormChanged?.Invoke();

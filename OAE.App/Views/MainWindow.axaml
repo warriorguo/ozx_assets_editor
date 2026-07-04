@@ -159,15 +159,19 @@
                     <!-- Action bar -->
                     <Border DockPanel.Dock="Top" Padding="16,10" Background="#141821"
                             BorderBrush="#1F242C" BorderThickness="0,0,0,1">
-                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
                             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <Ellipse Width="9" Height="9" Fill="#FFC83D"
                                          IsVisible="{Binding IsDirty}" ToolTip.Tip="Unsaved changes"/>
                                 <TextBlock Text="{Binding SaveStatus}" Foreground="#7A8290" FontSize="11"/>
                             </StackPanel>
-                            <Button Grid.Column="2" Content="Revert" Click="OnRevertClick" Margin="6,0"
+                            <Button Grid.Column="2" Content="Undo" Click="OnUndoClick" Margin="6,0"
+                                    IsEnabled="{Binding CanUndo}" ToolTip.Tip="Undo (⌘Z)"/>
+                            <Button Grid.Column="3" Content="Redo" Click="OnRedoClick" Margin="0,0,6,0"
+                                    IsEnabled="{Binding CanRedo}" ToolTip.Tip="Redo (⇧⌘Z)"/>
+                            <Button Grid.Column="4" Content="Revert" Click="OnRevertClick" Margin="6,0"
                                     IsEnabled="{Binding IsDirty}"/>
-                            <Button Grid.Column="3" Content="Save" Click="OnSaveClick" Padding="16,7"
+                            <Button Grid.Column="5" Content="Save" Click="OnSaveClick" Padding="16,7"
                                     IsEnabled="{Binding CanSave}"
                                     Background="#2C6BE6" Foreground="White"/>
                         </Grid>
